@@ -1,6 +1,7 @@
 import json
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox
+import random
+# import sys
+# from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox
 
 # Galvenās funkcijas, kuras saglabā un nolasa datus no faila.
 def saglabat_datus():
@@ -175,42 +176,85 @@ serijas_indekss = None
 
 # Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
 default_poziciju_saraksts = {
-    "Pozīcija 1": { "laiks": 0.66, "gabali": 0 },
-    "Pozīcija 2": { "laiks": 1.33, "gabali": 0 },
-    "Pozīcija 3": { "laiks": 0.5, "gabali": 0 },
-    "Pozīcija 4": { "laiks": 0.33, "gabali": 0 },
-    "Pozīcija 5": { "laiks": 1.33, "gabali": 0 },
-    "Pozīcija 6": { "laiks": 1, "gabali": 0 },
-    "Pozīcija 7": { "laiks": 0.8, "gabali": 0 },
-    "Pozīcija 8": { "laiks": 2, "gabali": 0 },
-    "Pozīcija 9": { "laiks": 0.66, "gabali": 0 }
+    "Pozīcija 1": { "laiks": 0.66, "gabali": 10 },
+    "Pozīcija 2": { "laiks": 1.33, "gabali": 10 },
+    "Pozīcija 3": { "laiks": 0.5, "gabali": 10 },
+    "Pozīcija 4": { "laiks": 0.33, "gabali": 10 },
+    "Pozīcija 5": { "laiks": 1.33, "gabali": 10 },
+    "Pozīcija 6": { "laiks": 1, "gabali": 10 },
+    "Pozīcija 7": { "laiks": 0.8, "gabali": 10 },
+    "Pozīcija 8": { "laiks": 2, "gabali": 10 },
+    "Pozīcija 9": { "laiks": 0.66, "gabali": 10 }
 }
 
 default_darbinieku_saraksts = {
-    "Māris": { "efektivitāte": 1.2, "iekļauts": True },
-    "Uldis": { "efektivitāte": 1.2, "iekļauts": True },
-    "Juris": { "efektivitāte": 1.2, "iekļauts": True },
-    "Sandis": { "efektivitāte": 0.3, "iekļauts": True },
-    "Ervīns": { "efektivitāte": 0.1, "iekļauts": True },
-    "Jānis": { "efektivitāte": 0.1, "iekļauts": True },
-    "Aigars": { "efektivitāte": 0.3, "iekļauts": True },
+    "Māris": { "efektivitāte": 1.2, "iekļauts": False },
+    "Uldis": { "efektivitāte": 1.2, "iekļauts": False },
+    "Juris": { "efektivitāte": 1.2, "iekļauts": False },
+    "Sandis": { "efektivitāte": 0.3, "iekļauts": False },
+    "Ervīns": { "efektivitāte": 0.1, "iekļauts": False },
+    "Jānis": { "efektivitāte": 0.1, "iekļauts": False },
+    "Aigars": { "efektivitāte": 0.3, "iekļauts": False },
     "Ingus": { "efektivitāte": 1.0, "iekļauts": True },
-    "Alvis": { "efektivitāte": 0.8, "iekļauts": True },
-    "Maksims": { "efektivitāte": 0.1, "iekļauts": True }
+    "Alvis": { "efektivitāte": 0.8, "iekļauts": False },
+    "Maksims": { "efektivitāte": 0.1, "iekļauts": False }
 }
 
 # Aprēķiniem nepieciešamie mainīgie.
-krasotavas_kludas_koeficients = 0.05
-kvalitates_parbaudes_koeficients = 0.05
+krasotavas_kludas_koeficients = 0.03
+kvalitates_parbaudes_koeficients = 0.03
+arejie_faktori = 0
 
+# Aprēķina cik sērijā ir daudz darba, mērot stundās.
+def aprekinat_darba_laiku():
+    if aktiva_serija is not None:
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        total_time = 0
+        for pozicija, info in current_series["poziciju_saraksts"].items():
+            total_time += info["laiks"] * info["gabali"]
+        # print(f"Sērijā darbs ir: {total_time}h.")
+        return total_time
+    else:
+        print("Nav aktīvas sērijas.")
 
+# Aprēķina cik ilgi aizņems laiks, lai izpildītu sēriju, ņemot vērā tikai tos darbiniekus, kuri ir iekļauti.
+def aprekinat_izpildes_laiku():
+    if aktiva_serija is not None:
+        current_series = seriju_saraksts[aktiva_serija - 1]
 
+        kopejais_laiks = aprekinat_darba_laiku()
+        kopeja_efektivitate = 0
 
+        for darbinieks in current_series["darbinieku_saraksts"].values():
+            if darbinieks["iekļauts"]:
+                kopeja_efektivitate += darbinieks["efektivitāte"]
+        
+        kopejais_laiks += kopejais_laiks * krasotavas_kludas_koeficients
+        kopejais_laiks += kopejais_laiks * kvalitates_parbaudes_koeficients
+        kopejais_laiks += arejie_faktori
+
+        # print("Kopējā darbinieku efektivitāte:", round(kopeja_efektivitate, 1))
+
+        kopejais_laiks /= kopeja_efektivitate
+        # print(f"Sēriju izpildes laiks: {round(kopejais_laiks, 1)}h.")
+        # print(f"Vajadzēs {round(kopejais_laiks / 8, 1)}d.")
+        return kopejais_laiks
+
+    else:
+        print("Nav aktīvas sērijas.")
+
+# print("Alvis dienā normu izdara 9. pozīcijai: ", int(0.8*8/0.66))	
 # print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
+# print("Māris dienā normu izdara 9. pozīcijai: ", int(1.2*8/0.66))
 
+jauna_serija()
+aprekinat_izpildes_laiku()
 
-
-
+"""
+    Ir uztaisītas funkcijas, kuras aprēķina:
+     * Darba laiku sērijā.
+     * Reālo zpildes laiku sērijā.
+"""
 
 
 """
