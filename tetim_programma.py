@@ -2,39 +2,6 @@ import json
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox
 
-""" Globālie mainīgie un funkcijas, kas darbina kodu. """
-# Nodibina sēriju sarakstu, kā arī sēriju indeksu.
-seriju_saraksts = []
-serijas_indekss = None
-
-# Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
-default_poziciju_saraksts = {
-    "Pozīcija 1": { "laiks": 0.66, "gabali": 0 },
-    "Pozīcija 2": { "laiks": 1.33, "gabali": 0 },
-    "Pozīcija 3": { "laiks": 0.5, "gabali": 0 },
-    "Pozīcija 4": { "laiks": 0.33, "gabali": 0 },
-    "Pozīcija 5": { "laiks": 1.33, "gabali": 0 },
-    "Pozīcija 6": { "laiks": 1, "gabali": 0 },
-    "Pozīcija 7": { "laiks": 0.8, "gabali": 0 },
-    "Pozīcija 8": { "laiks": 2, "gabali": 0 },
-    "Pozīcija 9": { "laiks": 0.66, "gabali": 0 }
-}
-
-default_darbinieku_saraksts = {
-    "Māris": { "efektivitāte": 1.2, "iekļauts": True },
-    "Uldis": { "efektivitāte": 1.2, "iekļauts": True },
-    "Juris": { "efektivitāte": 1.2, "iekļauts": True },
-    "Sandis": { "efektivitāte": 0.3, "iekļauts": True },
-    "Ervīns": { "efektivitāte": 0.1, "iekļauts": True },
-    "Jānis": { "efektivitāte": 0.1, "iekļauts": True },
-    "Aigars": { "efektivitāte": 0.3, "iekļauts": True },
-    "Ingus": { "efektivitāte": 1.0, "iekļauts": True },
-    "Alvis": { "efektivitāte": 0.8, "iekļauts": True },
-    "Maksims": { "efektivitāte": 0.1, "iekļauts": True }
-}
-
-# print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
-
 # Galvenās funkcijas, kuras saglabā un nolasa datus no faila.
 def saglabat_datus():
     with open('serijas_data.json', 'w', encoding='utf-8') as f:
@@ -71,7 +38,7 @@ def mainit_efektivitati(vards, jauna_efektivitate):
 # Funkcija maina esoša darbinieka iekļaušanas statusu, izmantojot viņa vārdu un jauno statusu, default darbinieku sarakstā.
 def mainit_ieklausanu(vards, jauns_statuss):
     if vards in default_darbinieku_saraksts:
-        default_darbinieku_saraksts[vards]["iekļauts"] = jauns_statuss
+        default_darbinieku_saraksts[vards]["iekļauts"] =  jauns_statuss
         print(f"Darbinieka '{vards}' iekļaušanas statuss mainīts uz {jauns_statuss}.")
     else:
         print(f"Darbinieks '{vards}' nav atrasts sarakstā.")
@@ -201,6 +168,51 @@ def SERIJA_dzest_darbinieku(darbinieks):
     else:
         print("Nav aktīvas sērijas.")
 
+""" Globālie mainīgie, kas darbina kodu. """
+# Nodibina sēriju sarakstu, kā arī sēriju indeksu.
+seriju_saraksts = []
+serijas_indekss = None
+
+# Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
+default_poziciju_saraksts = {
+    "Pozīcija 1": { "laiks": 0.66, "gabali": 0 },
+    "Pozīcija 2": { "laiks": 1.33, "gabali": 0 },
+    "Pozīcija 3": { "laiks": 0.5, "gabali": 0 },
+    "Pozīcija 4": { "laiks": 0.33, "gabali": 0 },
+    "Pozīcija 5": { "laiks": 1.33, "gabali": 0 },
+    "Pozīcija 6": { "laiks": 1, "gabali": 0 },
+    "Pozīcija 7": { "laiks": 0.8, "gabali": 0 },
+    "Pozīcija 8": { "laiks": 2, "gabali": 0 },
+    "Pozīcija 9": { "laiks": 0.66, "gabali": 0 }
+}
+
+default_darbinieku_saraksts = {
+    "Māris": { "efektivitāte": 1.2, "iekļauts": True },
+    "Uldis": { "efektivitāte": 1.2, "iekļauts": True },
+    "Juris": { "efektivitāte": 1.2, "iekļauts": True },
+    "Sandis": { "efektivitāte": 0.3, "iekļauts": True },
+    "Ervīns": { "efektivitāte": 0.1, "iekļauts": True },
+    "Jānis": { "efektivitāte": 0.1, "iekļauts": True },
+    "Aigars": { "efektivitāte": 0.3, "iekļauts": True },
+    "Ingus": { "efektivitāte": 1.0, "iekļauts": True },
+    "Alvis": { "efektivitāte": 0.8, "iekļauts": True },
+    "Maksims": { "efektivitāte": 0.1, "iekļauts": True }
+}
+
+# Aprēķiniem nepieciešamie mainīgie.
+krasotavas_kludas_koeficients = 0.05
+kvalitates_parbaudes_koeficients = 0.05
+
+
+
+
+# print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
+
+
+
+
+
+
 """
 1. Tā lapiņa arī parādas blakus uz ekrāna.
 2. Diagrammā:
@@ -218,117 +230,4 @@ Apkopojumā:
  * durvju kopējais skaits (pats savadīs),
  * visus tos rezultātus,
  * brīva vieta komentāriem,
-"""
-
-# Ielādē sēriju datus no failiem, kad programma tiek palaista.
-# ieladet_datus()
-# jauna_serija()
-# SERIJA_mainit_gabalus("Pozīcija 1", 5)
-# SERIJA_mainit_laiku("Pozīcija 1", 10)
-# SERIJA_mainit_efektivitati("Māris Zariņš", 2.0)
-# SERIJA_mainit_ieklaušanu("Māris Zariņš", False)
-# SERIJA_pievienot_darbinieku("Jānis", 1.5)
-# SERIJA_dzest_darbinieku("Uldis")
-# 
-# saglabat_datus()
-
-
-""" ChatGPT GUI:
-class MainWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    def initUI(self):
-        layout = QVBoxLayout()
-
-        # Button to create a new series
-        self.new_series_btn = QPushButton('Izveidot jaunu sēriju', self)
-        self.new_series_btn.clicked.connect(self.create_new_series)
-        layout.addWidget(self.new_series_btn)
-
-        # ComboBox to select active series
-        self.series_selector = QComboBox(self)
-        self.series_selector.addItems([str(i+1) for i in range(len(seriju_saraksts))])
-        self.series_selector.currentIndexChanged.connect(self.change_active_series)
-        layout.addWidget(QLabel('Izvēlēties aktīvo sēriju:'))
-        layout.addWidget(self.series_selector)
-
-        # Input for changing pieces in a position
-        self.position_input = QLineEdit(self)
-        self.pieces_input = QSpinBox(self)
-        self.change_pieces_btn = QPushButton('Mainīt gabalu skaitu', self)
-        self.change_pieces_btn.clicked.connect(self.change_pieces)
-        layout.addWidget(QLabel('Pozīcija:'))
-        layout.addWidget(self.position_input)
-        layout.addWidget(QLabel('Jaunie gabali:'))
-        layout.addWidget(self.pieces_input)
-        layout.addWidget(self.change_pieces_btn)
-
-        # Input for changing time in a position
-        self.time_input = QSpinBox(self)
-        self.change_time_btn = QPushButton('Mainīt pozīcijas laiku', self)
-        self.change_time_btn.clicked.connect(self.change_time)
-        layout.addWidget(QLabel('Jaunais laiks:'))
-        layout.addWidget(self.time_input)
-        layout.addWidget(self.change_time_btn)
-
-        # Input for changing employee efficiency
-        self.employee_input = QLineEdit(self)
-        self.efficiency_input = QDoubleSpinBox(self)
-        self.efficiency_input.setRange(0, 10)
-        self.change_efficiency_btn = QPushButton('Mainīt darbinieka efektivitāti', self)
-        self.change_efficiency_btn.clicked.connect(self.change_efficiency)
-        layout.addWidget(QLabel('Darbinieks:'))
-        layout.addWidget(self.employee_input)
-        layout.addWidget(QLabel('Jaunā efektivitāte:'))
-        layout.addWidget(self.efficiency_input)
-        layout.addWidget(self.change_efficiency_btn)
-
-        # Input for changing employee inclusion
-        self.inclusion_checkbox = QCheckBox('Iekļauts', self)
-        self.change_inclusion_btn = QPushButton('Mainīt darbinieka iekļaušanu', self)
-        self.change_inclusion_btn.clicked.connect(self.change_inclusion)
-        layout.addWidget(self.inclusion_checkbox)
-        layout.addWidget(self.change_inclusion_btn)
-
-        self.setLayout(layout)
-        self.setWindowTitle('Sēriju pārvaldība')
-        self.show()
-
-    def create_new_series(self):
-        jauna_serija()
-        self.series_selector.addItem(str(len(seriju_saraksts)))
-        print("Jauna sērija izveidota.")
-
-    def change_active_series(self):
-        index = self.series_selector.currentIndex()
-        mainit_aktivo_seriju(index)
-        print(f"Aktīvā sērija mainīta uz {index + 1}.")
-
-    def change_pieces(self):
-        pozicija = self.position_input.text()
-        jaunie_gabali = self.pieces_input.value()
-        mainit_gabalus(pozicija, jaunie_gabali)
-
-    def change_time(self):
-        pozicija = self.position_input.text()
-        jaunais_laiks = self.time_input.value()
-        mainit_pozicijas_laiku(pozicija, jaunais_laiks)
-
-    def change_efficiency(self):
-        darbinieks = self.employee_input.text()
-        jauna_efektivitate = self.efficiency_input.value()
-        mainit_darbinieku_efektivitati(darbinieks, jauna_efektivitate)
-
-    def change_inclusion(self):
-        darbinieks = self.employee_input.text()
-        ieklauts = self.inclusion_checkbox.isChecked()
-        mainit_darbinieka_ieklaušanu(darbinieks, ieklauts)
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    mainWin = MainWindow()
-    mainWin.show()
-    sys.exit(app.exec_())
 """
