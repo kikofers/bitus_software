@@ -17,6 +17,7 @@ def ieladet_datus():
         with open('serijas_data.json', 'r', encoding='utf-8') as f:
             seriju_saraksts = json.load(f)
         print("Veiksmīgi nolasīti dati no faila.")
+        mainit_aktivo_seriju(len(seriju_saraksts)-1)
     except FileNotFoundError:
         print("Sērijas datu fails netika atrasts. Tiks izveidots jauns fails.")
 
@@ -248,30 +249,98 @@ class Window(QWidget):
         super().__init__()
         self.setWindowTitle("Tētim programma")
         self.setGeometry(100, 100, 600, 400)
+        
+        self.serijas_nosaukums = QLabel("", self)
+        self.update_series_label()
+        
         self.UiComponents()
         self.show()
 
     def UiComponents(self):
-        serijas_nosaukums = QLabel("", self)
-        font = QFont()
-        font.setPointSize(24)
-        serijas_nosaukums.setFont(font)
-        serijas_nosaukums.setGeometry(10, 3, 200, 36)
-        colors = ["red", "green", "blue", "black"]
-        selected_color = colors[aktiva_serija % 4]
-        serijas_nosaukums.setText(f"Sērija {aktiva_serija}")
-        serijas_nosaukums.setStyleSheet(f"color: {selected_color};")
+        font = QFont("Asap Medium", 24, QFont.DemiBold)
+        self.serijas_nosaukums.setFont(font)
+        self.serijas_nosaukums.setGeometry(10, 3, 250, 60)
+
+        jauna_serija_poga = QPushButton("Jauna sērija", self)
+        jauna_serija_poga.setGeometry(1765, 3, 150, 60)
+        jauna_serija_poga.clicked.connect(self.start_new_series)
+
+        atgriezties_poga = QPushButton("Pēdējā sērija", self)
+        atgriezties_poga.setGeometry(1600, 3, 150, 60)
+        atgriezties_poga.clicked.connect(self.return_to_latest_series)
+
+        nakama_s_poga = QPushButton("Nākamā sērija", self)
+        nakama_s_poga.setGeometry(1435, 3, 150, 60)
+        nakama_s_poga.clicked.connect(self.next_series)
+
+        iepriekseja_s_poga = QPushButton("Iepriekšējā sērija", self)
+        iepriekseja_s_poga.setGeometry(1270, 3, 150, 60)
+        iepriekseja_s_poga.clicked.connect(self.previous_series)
 
         self.showMaximized()
 
+    def button_style(self):
+        return """
+            QPushButton {
+                background-color: #4CAF50; /* Green */
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                border-radius: 5px; /* Rounded corners */
+            }
+            QPushButton:hover {
+                background-color: #45a049; /* Darker green */
+            }
+        """
+
+    def update_series_label(self):
+        colors = ["green", "red", "black", "blue"]
+        selected_color = colors[(aktiva_serija - 1) % 4] if aktiva_serija else "orange"
+        self.serijas_nosaukums.setText(f"Sērija {aktiva_serija if aktiva_serija else 'Nav'}")
+        self.serijas_nosaukums.setStyleSheet(f"color: {selected_color};")
+        self.serijas_nosaukums.show()
+
+    def start_new_series(self):
+        jauna_serija()
+        self.update_series_label()
+
+    def return_to_latest_series(self):
+        if aktiva_serija is None:
+            return None
+        else:
+            if aktiva_serija == len(seriju_saraksts):
+                return None
+            else:
+                mainit_aktivo_seriju(len(seriju_saraksts)-1)
+                self.update_series_label()
+
+    def next_series(self):
+        if aktiva_serija is None:
+            return None
+        else:
+            mainit_aktivo_seriju(aktiva_serija)
+            self.update_series_label()
+
+    def previous_series(self):
+        if aktiva_serija is None:
+            return None
+        else:
+            mainit_aktivo_seriju(aktiva_serija - 2)
+            self.update_series_label()
+
 # Running the application
 ieladet_datus()
-jauna_serija()
 
 app = QApplication(sys.argv)
 window = Window()
 window.show()
-sys.exit(app.exec_()) 
+sys.exit(app.exec())
+
+
 
 # print("Alvis dienā normu izdara 9. pozīcijai: ", int(0.8*8/0.66))	
 # print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
