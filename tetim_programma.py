@@ -1,7 +1,8 @@
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 import json
-import random
-# import sys
-# from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QComboBox, QLabel, QLineEdit, QSpinBox, QDoubleSpinBox, QCheckBox
+import sys
 
 # Galvenās funkcijas, kuras saglabā un nolasa datus no faila.
 def saglabat_datus():
@@ -172,7 +173,7 @@ def SERIJA_dzest_darbinieku(darbinieks):
 """ Globālie mainīgie, kas darbina kodu. """
 # Nodibina sēriju sarakstu, kā arī sēriju indeksu.
 seriju_saraksts = []
-serijas_indekss = None
+aktiva_serija = None
 
 # Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
 default_poziciju_saraksts = {
@@ -212,10 +213,9 @@ def aprekinat_darba_laiku():
         total_time = 0
         for pozicija, info in current_series["poziciju_saraksts"].items():
             total_time += info["laiks"] * info["gabali"]
-        # print(f"Sērijā darbs ir: {total_time}h.")
         return total_time
     else:
-        print("Nav aktīvas sērijas.")
+        return None
 
 # Aprēķina cik ilgi aizņems laiks, lai izpildītu sēriju, ņemot vērā tikai tos darbiniekus, kuri ir iekļauti.
 def aprekinat_izpildes_laiku():
@@ -241,21 +241,41 @@ def aprekinat_izpildes_laiku():
         return kopejais_laiks
 
     else:
-        print("Nav aktīvas sērijas.")
+        return None
+
+class Window(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Tētim programma")
+        self.setGeometry(100, 100, 600, 400)
+        self.UiComponents()
+        self.show()
+
+    def UiComponents(self):
+        serijas_nosaukums = QLabel("", self)
+        font = QFont()
+        font.setPointSize(24)
+        serijas_nosaukums.setFont(font)
+        serijas_nosaukums.setGeometry(10, 3, 200, 36)
+        colors = ["red", "green", "blue", "black"]
+        selected_color = colors[aktiva_serija % 4]
+        serijas_nosaukums.setText(f"Sērija {aktiva_serija}")
+        serijas_nosaukums.setStyleSheet(f"color: {selected_color};")
+
+        self.showMaximized()
+
+# Running the application
+ieladet_datus()
+jauna_serija()
+
+app = QApplication(sys.argv)
+window = Window()
+window.show()
+sys.exit(app.exec_()) 
 
 # print("Alvis dienā normu izdara 9. pozīcijai: ", int(0.8*8/0.66))	
 # print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
 # print("Māris dienā normu izdara 9. pozīcijai: ", int(1.2*8/0.66))
-
-jauna_serija()
-aprekinat_izpildes_laiku()
-
-"""
-    Ir uztaisītas funkcijas, kuras aprēķina:
-     * Darba laiku sērijā.
-     * Reālo zpildes laiku sērijā.
-"""
-
 
 """
 1. Tā lapiņa arī parādas blakus uz ekrāna.
