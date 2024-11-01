@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import json
 import sys
+import random
 
 # Galvenās funkcijas, kuras saglabā un nolasa datus no faila.
 def saglabat_datus():
@@ -178,15 +179,15 @@ aktiva_serija = None
 
 # Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
 default_poziciju_saraksts = {
-    "Pozīcija 1": { "laiks": 0.66, "gabali": 10 },
-    "Pozīcija 2": { "laiks": 1.33, "gabali": 10 },
-    "Pozīcija 3": { "laiks": 0.5, "gabali": 10 },
-    "Pozīcija 4": { "laiks": 0.33, "gabali": 10 },
-    "Pozīcija 5": { "laiks": 1.33, "gabali": 10 },
-    "Pozīcija 6": { "laiks": 1, "gabali": 10 },
-    "Pozīcija 7": { "laiks": 0.8, "gabali": 10 },
-    "Pozīcija 8": { "laiks": 2, "gabali": 10 },
-    "Pozīcija 9": { "laiks": 0.66, "gabali": 10 }
+    "Pozīcija 1": { "laiks": 0.66, "gabali": random.randint(1, 10) },
+    "Pozīcija 2": { "laiks": 1.33, "gabali": random.randint(1, 10) },
+    "Pozīcija 3": { "laiks": 0.5, "gabali": random.randint(1, 10) },
+    "Pozīcija 4": { "laiks": 0.33, "gabali": random.randint(1, 10) },
+    "Pozīcija 5": { "laiks": 1.33, "gabali": random.randint(1, 10) },
+    "Pozīcija 6": { "laiks": 1, "gabali": random.randint(1, 10) },
+    "Pozīcija 7": { "laiks": 0.8, "gabali": random.randint(1, 10) },
+    "Pozīcija 8": { "laiks": 2, "gabali": random.randint(1, 10) },
+    "Pozīcija 9": { "laiks": 0.66, "gabali": random.randint(1, 10) }
 }
 
 default_darbinieku_saraksts = {
@@ -251,14 +252,14 @@ class Window(QWidget):
         self.setGeometry(100, 100, 600, 400)
         
         self.serijas_nosaukums = QLabel("", self)
-        self.update_series_label()
+        self.update_serijas_nosaukumu()
         
         self.UiComponents()
         self.show()
 
     def UiComponents(self):
-        font = QFont("Asap Medium", 24, QFont.DemiBold)
-        self.serijas_nosaukums.setFont(font)
+        Series_font = QFont("Asap Medium", 24, QFont.DemiBold)
+        self.serijas_nosaukums.setFont(Series_font)
         self.serijas_nosaukums.setGeometry(10, 3, 250, 60)
 
         jauna_serija_poga = QPushButton("Jauna sērija", self)
@@ -269,36 +270,38 @@ class Window(QWidget):
         atgriezties_poga.setGeometry(1600, 3, 150, 60)
         atgriezties_poga.clicked.connect(self.return_to_latest_series)
 
-        nakama_s_poga = QPushButton("Nākamā sērija", self)
-        nakama_s_poga.setGeometry(1435, 3, 150, 60)
-        nakama_s_poga.clicked.connect(self.next_series)
+        nakamas_poga = QPushButton("Nākamā sērija", self)
+        nakamas_poga.setGeometry(1435, 3, 150, 60)
+        nakamas_poga.clicked.connect(self.next_series)
 
-        iepriekseja_s_poga = QPushButton("Iepriekšējā sērija", self)
-        iepriekseja_s_poga.setGeometry(1270, 3, 150, 60)
-        iepriekseja_s_poga.clicked.connect(self.previous_series)
+        ieprieksejas_poga = QPushButton("Iepriekšējā sērija", self)
+        ieprieksejas_poga.setGeometry(1270, 3, 150, 60)
+        ieprieksejas_poga.clicked.connect(self.previous_series)
 
+        self.serijas_dati = QTextEdit(self)
+        self.serijas_dati.setGeometry(10, 70, 350, 350)
+        self.update_serijas_pozicijas_datus()
+        Position_font = QFont("Asap Medium", 13, QFont.Medium)
+        self.serijas_dati.setFont(Position_font)
+        
         self.showMaximized()
 
-    def button_style(self):
-        return """
-            QPushButton {
-                background-color: #4CAF50; /* Green */
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                border-radius: 5px; /* Rounded corners */
-            }
-            QPushButton:hover {
-                background-color: #45a049; /* Darker green */
-            }
-        """
+    def update_serijas_pozicijas_datus(self):
+        if aktiva_serija is not None:
+            active_positions = seriju_saraksts[aktiva_serija - 1]["poziciju_saraksts"]
+            placeholder_text = (
+                "  Pozīcija     Gabalu skaits\n" +
+                "\n".join(
+                    [f" {pozicija}:         {info['gabali']}" 
+                    for pozicija, info in active_positions.items()]
+                ) if active_positions else "Nav aktīvas sērijas"
+            )
+        else:
+            placeholder_text = "Nav aktīvas sērijas."
+        self.serijas_dati.setPlaceholderText(placeholder_text)
 
-    def update_series_label(self):
-        colors = ["green", "red", "black", "blue"]
+    def update_serijas_nosaukumu(self):
+        colors = ["black", "blue", "green", "red"]
         selected_color = colors[(aktiva_serija - 1) % 4] if aktiva_serija else "orange"
         self.serijas_nosaukums.setText(f"Sērija {aktiva_serija if aktiva_serija else 'Nav'}")
         self.serijas_nosaukums.setStyleSheet(f"color: {selected_color};")
@@ -306,7 +309,8 @@ class Window(QWidget):
 
     def start_new_series(self):
         jauna_serija()
-        self.update_series_label()
+        self.update_serijas_nosaukumu()
+        self.update_serijas_pozicijas_datus()
 
     def return_to_latest_series(self):
         if aktiva_serija is None:
@@ -316,21 +320,24 @@ class Window(QWidget):
                 return None
             else:
                 mainit_aktivo_seriju(len(seriju_saraksts)-1)
-                self.update_series_label()
+                self.update_serijas_nosaukumu()
+                self.update_serijas_pozicijas_datus()
 
     def next_series(self):
         if aktiva_serija is None:
             return None
         else:
             mainit_aktivo_seriju(aktiva_serija)
-            self.update_series_label()
+            self.update_serijas_nosaukumu()
+            self.update_serijas_pozicijas_datus()
 
     def previous_series(self):
         if aktiva_serija is None:
             return None
         else:
             mainit_aktivo_seriju(aktiva_serija - 2)
-            self.update_series_label()
+            self.update_serijas_nosaukumu()
+            self.update_serijas_pozicijas_datus()
 
 # Running the application
 ieladet_datus()
