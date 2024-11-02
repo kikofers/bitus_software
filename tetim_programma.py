@@ -98,6 +98,8 @@ def mainit_aktivo_seriju(indekss):
         print("Norādīts nederīgs sērijas indekss.")
 
 """ Funkcijas saistībā ar pozīciju saraksta mainīšanu konkrētā sērijā: """
+
+"""
 # Maina gabalu skaitu noteiktā pozīcijā, aktīvajā sērijā.
 def SERIJA_mainit_gabalus(pozicija, jaunie_gabali):
     if aktiva_serija is not None:
@@ -109,6 +111,7 @@ def SERIJA_mainit_gabalus(pozicija, jaunie_gabali):
             print(f"Pozīcija '{pozicija}' netika atrasta aktīvajā sērijā.")
     else:
         print("Nav aktīvas sērijas.")
+"""
 
 # Funkcija, kas maina pozīcijas laiku noteiktā sērijā.
 def SERIJA_mainit_laiku(pozicija, jaunais_laiks):
@@ -286,18 +289,20 @@ class Window(QWidget):
 
         self.tabula_pozicijas = QTableWidget(self)
         self.tabula_pozicijas.setRowCount(len(default_poziciju_saraksts))
-        self.tabula_pozicijas.setColumnCount(2)
-        self.tabula_pozicijas.setGeometry(10, 70, 380, 454)
-        self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits"])
+        self.tabula_pozicijas.setColumnCount(3)
+        self.tabula_pozicijas.setGeometry(10, 70, 542, 453)
+        self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt skaitu"])
         self.tabula_pozicijas.horizontalHeader().setFont(header_font)
-        self.tabula_pozicijas.setColumnWidth(1, 200)
+        self.tabula_pozicijas.setColumnWidth(0, 170)
+        self.tabula_pozicijas.setColumnWidth(1, 190)
+        self.tabula_pozicijas.setColumnWidth(2, 180)
         self.tabula_pozicijas.verticalHeader().setVisible(False)
         self.tabula_pozicijas.setFont(Position_font)
         
         self.tabula_darbinieku = QTableWidget(self)
         self.tabula_darbinieku.setRowCount(len(default_darbinieku_saraksts))
         self.tabula_darbinieku.setColumnCount(3)
-        self.tabula_darbinieku.setGeometry(450, 70, 508, 454)
+        self.tabula_darbinieku.setGeometry(560, 70, 508, 453)
         self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Iekļauts"])
         self.tabula_darbinieku.horizontalHeader().setFont(header_font)
         self.tabula_darbinieku.setColumnWidth(1, 180)
@@ -309,19 +314,21 @@ class Window(QWidget):
     def update_darbinieku_datus(self):
         if aktiva_serija is not None:
             current_series = seriju_saraksts[aktiva_serija - 1]
+            self.tabula_darbinieku.clear()
             self.tabula_darbinieku.setRowCount(len(current_series["darbinieku_saraksts"]))
-            
+            self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Iekļauts"])  # Reset headers
+
             for i, (darbinieks, info) in enumerate(current_series["darbinieku_saraksts"].items()):
-                # Worker name and efficiency cells
+                # Darbinieka kolonna.
                 item_darbinieks = QTableWidgetItem(darbinieks)
-                item_efektivitate = QTableWidgetItem(str(info["efektivitāte"]))
-                
                 item_darbinieks.setTextAlignment(Qt.AlignCenter)
-                item_efektivitate.setTextAlignment(Qt.AlignCenter)
-                
                 self.tabula_darbinieku.setItem(i, 0, item_darbinieks)
+
+                # Efektivitātes kolonna.
+                item_efektivitate = QTableWidgetItem(str(info["efektivitāte"]))
+                item_efektivitate.setTextAlignment(Qt.AlignCenter)
                 self.tabula_darbinieku.setItem(i, 1, item_efektivitate)
-                
+
                 # Checkbox for "Iekļauts" status
                 checkbox = QCheckBox()
                 checkbox.setChecked(info["iekļauts"])  # Set initial state
@@ -336,26 +343,59 @@ class Window(QWidget):
                 self.tabula_darbinieku.setCellWidget(i, 2, widget)
 
     def update_ieklausanu(self, worker, state):
-        # Update the 'iekļauts' status in darbinieku_saraksts
         current_series = seriju_saraksts[aktiva_serija - 1]
         current_series["darbinieku_saraksts"][worker]["iekļauts"] = bool(state)
-        print(f"Darbinieka '{worker}' iekļaušanas statuss mainīts uz {bool(state)}.")
         saglabat_datus()
 
     def update_pozicijas_datus(self):
         if aktiva_serija is not None:
             active_positions = seriju_saraksts[aktiva_serija - 1]["poziciju_saraksts"]
+            self.tabula_pozicijas.clear()
             self.tabula_pozicijas.setRowCount(len(active_positions))
-            for i, (pozicija, info) in enumerate(active_positions.items()):
+            self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt skaitu"])  # Reset headers
 
+            for i, (pozicija, info) in enumerate(active_positions.items()):
                 item_pozicija = QTableWidgetItem(pozicija)
                 item_gabali = QTableWidgetItem(str(info["gabali"]))
-                
+
                 item_pozicija.setTextAlignment(Qt.AlignCenter)
                 item_gabali.setTextAlignment(Qt.AlignCenter)
-                
+
                 self.tabula_pozicijas.setItem(i, 0, item_pozicija)
                 self.tabula_pozicijas.setItem(i, 1, item_gabali)
+
+                # Create the "+" button
+                plus_button = QPushButton("+")
+                plus_button.setFixedSize(35, 35)  # Set button size
+                plus_button.setStyleSheet("padding: 0; margin: 0;")
+                plus_button.clicked.connect(lambda checked, position=pozicija: self.update_gabali(position, 1))
+
+                # Create the "-" button
+                minus_button = QPushButton("-")
+                minus_button.setFixedSize(35, 35)  # Set button size
+                minus_button.setStyleSheet("padding: 0; margin: 0;")
+                minus_button.clicked.connect(lambda checked, position=pozicija: self.update_gabali(position, -1))
+
+                # Create a widget container to hold the buttons
+                button_widget = QWidget()
+                button_layout = QHBoxLayout()
+                button_layout.addWidget(plus_button)
+                button_layout.addWidget(minus_button)
+                button_layout.setAlignment(Qt.AlignCenter)
+                button_layout.setContentsMargins(0, 0, 0, 0)
+                button_widget.setLayout(button_layout)
+
+                # Add the button widget to the table
+                self.tabula_pozicijas.setCellWidget(i, 2, button_widget)
+                
+    def update_gabali(self, position, change):
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        if position in current_series["poziciju_saraksts"]:
+            current_series["poziciju_saraksts"][position]["gabali"] += change
+            # Ensure gabali doesn't go below zero
+            current_series["poziciju_saraksts"][position]["gabali"] = max(0, current_series["poziciju_saraksts"][position]["gabali"])
+            self.update_pozicijas_datus()
+            saglabat_datus()
 
     def update_serijas_nosaukumu(self):
         colors = ["black", "blue", "green", "red"]
