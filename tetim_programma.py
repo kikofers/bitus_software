@@ -250,15 +250,21 @@ class Window(QWidget):
         super().__init__()
         self.setWindowTitle("Tētim programma")
         self.setGeometry(100, 100, 600, 400)
-        
-        self.serijas_nosaukums = QLabel("", self)
-        self.update_serijas_nosaukumu()
-        
+
         self.UiComponents()
+
+        self.update_serijas_nosaukumu()
+        self.update_pozicijas_datus()
+        self.update_darbinieku_datus()
+        
         self.show()
 
     def UiComponents(self):
         Series_font = QFont("Asap Medium", 24, QFont.DemiBold)
+        Position_font = QFont("Asap Medium", 13, QFont.Medium)
+        header_font = QFont("Asap Medium", 13, QFont.Bold)
+
+        self.serijas_nosaukums = QLabel("", self)
         self.serijas_nosaukums.setFont(Series_font)
         self.serijas_nosaukums.setGeometry(10, 3, 250, 60)
 
@@ -278,27 +284,78 @@ class Window(QWidget):
         ieprieksejas_poga.setGeometry(1270, 3, 150, 60)
         ieprieksejas_poga.clicked.connect(self.previous_series)
 
-        self.serijas_dati = QTextEdit(self)
-        self.serijas_dati.setGeometry(10, 70, 350, 350)
-        self.update_serijas_pozicijas_datus()
-        Position_font = QFont("Asap Medium", 13, QFont.Medium)
-        self.serijas_dati.setFont(Position_font)
+        self.tabula_pozicijas = QTableWidget(self)
+        self.tabula_pozicijas.setRowCount(len(default_poziciju_saraksts))
+        self.tabula_pozicijas.setColumnCount(2)
+        self.tabula_pozicijas.setGeometry(10, 70, 380, 454)
+        self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits"])
+        self.tabula_pozicijas.horizontalHeader().setFont(header_font)
+        self.tabula_pozicijas.setColumnWidth(1, 200)
+        self.tabula_pozicijas.verticalHeader().setVisible(False)
+        self.tabula_pozicijas.setFont(Position_font)
         
+        self.tabula_darbinieku = QTableWidget(self)
+        self.tabula_darbinieku.setRowCount(len(default_darbinieku_saraksts))
+        self.tabula_darbinieku.setColumnCount(3)
+        self.tabula_darbinieku.setGeometry(450, 70, 508, 454)
+        self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Iekļauts"])
+        self.tabula_darbinieku.horizontalHeader().setFont(header_font)
+        self.tabula_darbinieku.setColumnWidth(1, 180)
+        self.tabula_darbinieku.verticalHeader().setVisible(False)
+        self.tabula_darbinieku.setFont(Position_font)
+
         self.showMaximized()
 
-    def update_serijas_pozicijas_datus(self):
+    def update_darbinieku_datus(self):
+        if aktiva_serija is not None:
+            current_series = seriju_saraksts[aktiva_serija - 1]
+            self.tabula_darbinieku.setRowCount(len(current_series["darbinieku_saraksts"]))
+            
+            for i, (darbinieks, info) in enumerate(current_series["darbinieku_saraksts"].items()):
+                # Worker name and efficiency cells
+                item_darbinieks = QTableWidgetItem(darbinieks)
+                item_efektivitate = QTableWidgetItem(str(info["efektivitāte"]))
+                
+                item_darbinieks.setTextAlignment(Qt.AlignCenter)
+                item_efektivitate.setTextAlignment(Qt.AlignCenter)
+                
+                self.tabula_darbinieku.setItem(i, 0, item_darbinieks)
+                self.tabula_darbinieku.setItem(i, 1, item_efektivitate)
+                
+                # Checkbox for "Iekļauts" status
+                checkbox = QCheckBox()
+                checkbox.setChecked(info["iekļauts"])  # Set initial state
+                checkbox.stateChanged.connect(lambda state, worker=darbinieks: self.update_ieklausanu(worker, state))
+
+                # Add the checkbox in a widget container to center it in the cell
+                widget = QWidget()
+                layout = QHBoxLayout()
+                layout.addWidget(checkbox)
+                layout.setAlignment(Qt.AlignCenter)
+                widget.setLayout(layout)
+                self.tabula_darbinieku.setCellWidget(i, 2, widget)
+
+    def update_ieklausanu(self, worker, state):
+        # Update the 'iekļauts' status in darbinieku_saraksts
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        current_series["darbinieku_saraksts"][worker]["iekļauts"] = bool(state)
+        print(f"Darbinieka '{worker}' iekļaušanas statuss mainīts uz {bool(state)}.")
+        saglabat_datus()
+
+    def update_pozicijas_datus(self):
         if aktiva_serija is not None:
             active_positions = seriju_saraksts[aktiva_serija - 1]["poziciju_saraksts"]
-            placeholder_text = (
-                "  Pozīcija     Gabalu skaits\n" +
-                "\n".join(
-                    [f" {pozicija}:         {info['gabali']}" 
-                    for pozicija, info in active_positions.items()]
-                ) if active_positions else "Nav aktīvas sērijas"
-            )
-        else:
-            placeholder_text = "Nav aktīvas sērijas."
-        self.serijas_dati.setPlaceholderText(placeholder_text)
+            self.tabula_pozicijas.setRowCount(len(active_positions))
+            for i, (pozicija, info) in enumerate(active_positions.items()):
+
+                item_pozicija = QTableWidgetItem(pozicija)
+                item_gabali = QTableWidgetItem(str(info["gabali"]))
+                
+                item_pozicija.setTextAlignment(Qt.AlignCenter)
+                item_gabali.setTextAlignment(Qt.AlignCenter)
+                
+                self.tabula_pozicijas.setItem(i, 0, item_pozicija)
+                self.tabula_pozicijas.setItem(i, 1, item_gabali)
 
     def update_serijas_nosaukumu(self):
         colors = ["black", "blue", "green", "red"]
@@ -310,7 +367,8 @@ class Window(QWidget):
     def start_new_series(self):
         jauna_serija()
         self.update_serijas_nosaukumu()
-        self.update_serijas_pozicijas_datus()
+        self.update_pozicijas_datus()
+        self.update_darbinieku_datus()
 
     def return_to_latest_series(self):
         if aktiva_serija is None:
@@ -321,7 +379,8 @@ class Window(QWidget):
             else:
                 mainit_aktivo_seriju(len(seriju_saraksts)-1)
                 self.update_serijas_nosaukumu()
-                self.update_serijas_pozicijas_datus()
+                self.update_pozicijas_datus()
+                self.update_darbinieku_datus()
 
     def next_series(self):
         if aktiva_serija is None:
@@ -329,7 +388,8 @@ class Window(QWidget):
         else:
             mainit_aktivo_seriju(aktiva_serija)
             self.update_serijas_nosaukumu()
-            self.update_serijas_pozicijas_datus()
+            self.update_pozicijas_datus()
+            self.update_darbinieku_datus()
 
     def previous_series(self):
         if aktiva_serija is None:
@@ -337,11 +397,11 @@ class Window(QWidget):
         else:
             mainit_aktivo_seriju(aktiva_serija - 2)
             self.update_serijas_nosaukumu()
-            self.update_serijas_pozicijas_datus()
+            self.update_pozicijas_datus()
+            self.update_darbinieku_datus()
 
 # Running the application
 ieladet_datus()
-
 app = QApplication(sys.argv)
 window = Window()
 window.show()
