@@ -301,11 +301,13 @@ class Window(QWidget):
         
         self.tabula_darbinieku = QTableWidget(self)
         self.tabula_darbinieku.setRowCount(len(default_darbinieku_saraksts))
-        self.tabula_darbinieku.setColumnCount(3)
-        self.tabula_darbinieku.setGeometry(560, 70, 508, 453)
-        self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Iekļauts"])
+        self.tabula_darbinieku.setColumnCount(4)
+        self.tabula_darbinieku.setGeometry(560, 70, 698, 453)
+        self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Mainīt efekt.", "Iekļauts"])
         self.tabula_darbinieku.horizontalHeader().setFont(header_font)
         self.tabula_darbinieku.setColumnWidth(1, 180)
+        self.tabula_darbinieku.setColumnWidth(2, 190)
+        self.tabula_darbinieku.setColumnWidth(3, 150)
         self.tabula_darbinieku.verticalHeader().setVisible(False)
         self.tabula_darbinieku.setFont(Position_font)
 
@@ -314,9 +316,13 @@ class Window(QWidget):
     def update_darbinieku_datus(self):
         if aktiva_serija is not None:
             current_series = seriju_saraksts[aktiva_serija - 1]
+            
+            # Save the current scroll position
+            scroll_position = self.tabula_darbinieku.verticalScrollBar().value()
+            
             self.tabula_darbinieku.clear()
             self.tabula_darbinieku.setRowCount(len(current_series["darbinieku_saraksts"]))
-            self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Iekļauts"])  # Reset headers
+            self.tabula_darbinieku.setHorizontalHeaderLabels(["Darbinieks", "Efektivitāte", "Mainīt efekt.", "Iekļauts"])  # Reset headers
 
             for i, (darbinieks, info) in enumerate(current_series["darbinieku_saraksts"].items()):
                 # Darbinieka kolonna.
@@ -325,9 +331,33 @@ class Window(QWidget):
                 self.tabula_darbinieku.setItem(i, 0, item_darbinieks)
 
                 # Efektivitātes kolonna.
-                item_efektivitate = QTableWidgetItem(str(info["efektivitāte"]))
+                item_efektivitate = QTableWidgetItem(f"{info['efektivitāte']:.1f}")
                 item_efektivitate.setTextAlignment(Qt.AlignCenter)
                 self.tabula_darbinieku.setItem(i, 1, item_efektivitate)
+
+                # Create the "+" button
+                plus_button = QPushButton("+")
+                plus_button.setFixedSize(35, 35)  # Set button size
+                plus_button.setStyleSheet("padding: 0; margin: 0;")
+                plus_button.clicked.connect(lambda checked, worker=darbinieks: self.update_efficiency(worker, 0.1))
+
+                # Create the "+" button
+                minus_button = QPushButton("-")
+                minus_button.setFixedSize(35, 35)  # Set button size
+                minus_button.setStyleSheet("padding: 0; margin: 0;")
+                minus_button.clicked.connect(lambda checked, worker=darbinieks: self.update_efficiency(worker, -0.1))
+
+                # Create a widget container to hold the buttons
+                button_widget = QWidget()
+                button_layout = QHBoxLayout()
+                button_layout.addWidget(plus_button)
+                button_layout.addWidget(minus_button)
+                button_layout.setAlignment(Qt.AlignCenter)
+                button_layout.setContentsMargins(0, 0, 0, 0)
+                button_widget.setLayout(button_layout)
+
+                # Add the button widget to the table
+                self.tabula_darbinieku.setCellWidget(i, 2, button_widget)
 
                 # Checkbox for "Iekļauts" status
                 checkbox = QCheckBox()
@@ -340,7 +370,20 @@ class Window(QWidget):
                 layout.addWidget(checkbox)
                 layout.setAlignment(Qt.AlignCenter)
                 widget.setLayout(layout)
-                self.tabula_darbinieku.setCellWidget(i, 2, widget)
+                self.tabula_darbinieku.setCellWidget(i, 3, widget)
+            
+            # Restore the scroll position
+            self.tabula_darbinieku.verticalScrollBar().setValue(scroll_position)
+
+    def update_efficiency(self, worker, change):
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        if worker in current_series["darbinieku_saraksts"]:
+            current_series["darbinieku_saraksts"][worker]["efektivitāte"] += change
+            # Ensure gabali doesn't go below zero
+            current_series["darbinieku_saraksts"][worker]["efektivitāte"] = max(0, current_series["darbinieku_saraksts"][worker]["efektivitāte"])
+            # print([worker, current_series["darbinieku_saraksts"][worker]["efektivitāte"]])
+            self.update_darbinieku_datus()
+            saglabat_datus()
 
     def update_ieklausanu(self, worker, state):
         current_series = seriju_saraksts[aktiva_serija - 1]
@@ -352,7 +395,7 @@ class Window(QWidget):
             active_positions = seriju_saraksts[aktiva_serija - 1]["poziciju_saraksts"]
             self.tabula_pozicijas.clear()
             self.tabula_pozicijas.setRowCount(len(active_positions))
-            self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt skaitu"])  # Reset headers
+            self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt efekt.", "Mainīt skaitu"])  # Reset headers
 
             for i, (pozicija, info) in enumerate(active_positions.items()):
                 item_pozicija = QTableWidgetItem(pozicija)
