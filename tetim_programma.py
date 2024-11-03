@@ -324,7 +324,22 @@ class Window(QWidget):
         dzest_darbinieku_poga.setGeometry(1270, 135, 150, 60)
         dzest_darbinieku_poga.clicked.connect(self.dzest_darbinieks)
 
+        self.atlasit_krasotavas_koeficientu = QDoubleSpinBox(self)
+        self.atlasit_krasotavas_koeficientu.setGeometry(1270, 200, 80, 50)
+        self.atlasit_krasotavas_koeficientu.setRange(0, 0.2)
+        self.atlasit_krasotavas_koeficientu.setSingleStep(0.01)
+        self.atlasit_krasotavas_koeficientu.setDecimals(2)
+        self.atlasit_krasotavas_koeficientu.setValue(krasotavas_kludas_koeficients)
+        self.atlasit_krasotavas_koeficientu.valueChanged.connect(self.update_krasotavas_koeficients)
+
         self.showMaximized()
+
+    def update_krasotavas_koeficients(self):
+        global krasotavas_kludas_koeficients
+        krasotavas_kludas_koeficients = self.atlasit_krasotavas_koeficientu.value()
+        print("Jaunais krāsošanas koeficients:", krasotavas_kludas_koeficients)
+    
+    # Krāsotavas koeficients netiek saglabāts failā, to vajag implementēt. Un arī padarīt kaut kā smukāku to ievadi !!!!!!!!!
 
     def dzest_darbinieks(self):
         if aktiva_serija is None:
