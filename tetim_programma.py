@@ -113,6 +113,7 @@ def SERIJA_mainit_gabalus(pozicija, jaunie_gabali):
         print("Nav aktīvas sērijas.")
 """
 
+"""
 # Funkcija, kas maina pozīcijas laiku noteiktā sērijā.
 def SERIJA_mainit_laiku(pozicija, jaunais_laiks):
     if aktiva_serija is not None:
@@ -124,8 +125,10 @@ def SERIJA_mainit_laiku(pozicija, jaunais_laiks):
             print(f"Pozīcija '{pozicija}' netika atrasta aktīvajā sērijā.")
     else :
         print("Nav aktīvas sērijas.")
+"""
 
 """ Funkcijas saistībā ar darbinieku saraksta mainīšanu konkrētajā sērijā:"""
+"""
 # Funkcija, kas maina darbinieka efektivitāti noteiktā sērijā.
 def SERIJA_mainit_efektivitati(darbinieks, jauna_efektivitate):
     if aktiva_serija is not None:
@@ -137,7 +140,8 @@ def SERIJA_mainit_efektivitati(darbinieks, jauna_efektivitate):
             print(f"Darbinieks '{darbinieks}' netika atrasts aktīvajā sērijā.")
     else:
         print("Nav aktīvas sērijas.")
-
+"""
+"""
 # Funkcija, kas maina darbinieka iekļaušanu/neiekļaušanu noteiktā sērijā.
 def SERIJA_mainit_ieklaušanu(darbinieks, ieklauts):
     if aktiva_serija is not None:
@@ -147,7 +151,8 @@ def SERIJA_mainit_ieklaušanu(darbinieks, ieklauts):
             print(f"Darbinieka '{darbinieks}' iekļaušana mainīta uz {ieklauts}.")
         else:
             print(f"Darbinieks '{darbinieks}' netika atrasts aktīvajā sērijā.")
-
+"""
+            
 # Funkcija, kas pievieno darbinieku noteiktā sērijā.
 def SERIJA_pievienot_darbinieku(darbinieks, efektivitate):
     if aktiva_serija is not None:
@@ -311,7 +316,43 @@ class Window(QWidget):
         self.tabula_darbinieku.verticalHeader().setVisible(False)
         self.tabula_darbinieku.setFont(Position_font)
 
+        pievienot_darbinieku_poga = QPushButton("Jauns darbinieks", self)
+        pievienot_darbinieku_poga.setGeometry(1270, 70, 150, 60)
+        pievienot_darbinieku_poga.clicked.connect(self.jauns_darbinieks)
+
+        dzest_darbinieku_poga = QPushButton("Dzēst darbinieku", self)
+        dzest_darbinieku_poga.setGeometry(1270, 135, 150, 60)
+        dzest_darbinieku_poga.clicked.connect(self.dzest_darbinieks)
+
         self.showMaximized()
+
+    def dzest_darbinieks(self):
+        if aktiva_serija is None:
+            return None
+        else:
+            name, ok = QInputDialog.getText(self, "Dzēst darbinieku", "Ievadiet darbinieka vārdu:                          ")
+            if ok and name:
+                current_series = seriju_saraksts[aktiva_serija-1]
+                if name in current_series["darbinieku_saraksts"]:
+                    SERIJA_dzest_darbinieku(name)
+                    self.update_darbinieku_datus()
+                    saglabat_datus()
+                else:
+                    QMessageBox.warning(self, "Kļūda", f"Darbinieks ar vārdu '{name}' neeksistē.")
+
+    def jauns_darbinieks(self):
+        if aktiva_serija is None:
+            return None
+        else:
+            name, ok = QInputDialog.getText(self, "Jauns darbinieks", "Ievadiet darbinieka vārdu:                          ")
+            if ok and name:
+                current_series = seriju_saraksts[aktiva_serija - 1]
+                if name not in current_series["darbinieku_saraksts"]:
+                    SERIJA_pievienot_darbinieku(name, 1.0)
+                    self.update_darbinieku_datus()
+                    saglabat_datus()
+                else:
+                    QMessageBox.warning(self, "Kļūda", f"Darbinieks ar vārdu '{name}' jau eksistē.")
 
     def update_darbinieku_datus(self):
         if aktiva_serija is not None:
@@ -395,7 +436,7 @@ class Window(QWidget):
             active_positions = seriju_saraksts[aktiva_serija - 1]["poziciju_saraksts"]
             self.tabula_pozicijas.clear()
             self.tabula_pozicijas.setRowCount(len(active_positions))
-            self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt efekt.", "Mainīt skaitu"])  # Reset headers
+            self.tabula_pozicijas.setHorizontalHeaderLabels(["Pozīcija", "Gabalu skaits", "Mainīt skaitu"])  # Reset headers
 
             for i, (pozicija, info) in enumerate(active_positions.items()):
                 item_pozicija = QTableWidgetItem(pozicija)
