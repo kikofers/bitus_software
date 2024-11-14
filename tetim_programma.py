@@ -3,26 +3,27 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import json
 import sys
-import random
 
 # Galvenās funkcijas, kuras saglabā un nolasa datus no faila.
 def saglabat_datus():
     with open('serijas_data.json', 'w', encoding='utf-8') as f:
-        json.dump(seriju_saraksts, f, ensure_ascii=False, indent=4)
-    print("Dati saglabāti failā.")
+        json.dump({
+            "seriju_saraksts": seriju_saraksts
+        }, f, ensure_ascii=False, indent=4)
+    # print("Dati saglabāti failā.")
 
 # Ielādē datus no faila.
 def ieladet_datus():
     global seriju_saraksts
     try:
         with open('serijas_data.json', 'r', encoding='utf-8') as f:
-            seriju_saraksts = json.load(f)
+            data = json.load(f)
+            seriju_saraksts = data.get("seriju_saraksts", [])
         print("Veiksmīgi nolasīti dati no faila.")
         mainit_aktivo_seriju(len(seriju_saraksts)-1)
     except FileNotFoundError:
         print("Sērijas datu fails netika atrasts. Tiks izveidots jauns fails.")
 
-""" Funkcijas, kas maina default sarakstus!!! """
 # Funkcija maina "laiks" vērtību norādītajai pozīcijai, default pozīciju sarakstā.
 def mainit_laiku(pozicija, jaunais_laiks):
     if pozicija in default_poziciju_saraksts:
@@ -66,7 +67,6 @@ def dzest_darbinieku(vards):
     else:
         print(f"Darbinieks '{vards}' netika atrasts sarakstā.")
 
-""" Funkcijas saistībā ar sērijām: """
 # Izveido jaunu sēriju, ņemot informāciju no default sarakstiem.
 def jauna_serija():
     global aktiva_serija
@@ -78,7 +78,9 @@ def jauna_serija():
     # Pievieno jauno sēriju kopējam sēriju sarakstam.
     seriju_saraksts.append({
         "poziciju_saraksts": poziciju_saraksts,
-        "darbinieku_saraksts": darbinieku_saraksts
+        "darbinieku_saraksts": darbinieku_saraksts,
+        "krasotavas_koeficients": krasotavas_kludas_koeficients,
+        "kvalitates_koeficients": kvalitates_parbaudes_koeficients
     })
 
     # Iegūst jaunās sērijas indeksu.
@@ -96,62 +98,6 @@ def mainit_aktivo_seriju(indekss):
         print(f"Aktīvā sērija mainīta uz {aktiva_serija}.")
     else:
         print("Norādīts nederīgs sērijas indekss.")
-
-""" Funkcijas saistībā ar pozīciju saraksta mainīšanu konkrētā sērijā: """
-
-"""
-# Maina gabalu skaitu noteiktā pozīcijā, aktīvajā sērijā.
-def SERIJA_mainit_gabalus(pozicija, jaunie_gabali):
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-        if pozicija in current_series["poziciju_saraksts"]:
-            current_series["poziciju_saraksts"][pozicija]["gabali"] = jaunie_gabali
-            print(f"Uzdevumu skaits pozīcijā '{pozicija}' mainīts uz {jaunie_gabali}.")
-        else:
-            print(f"Pozīcija '{pozicija}' netika atrasta aktīvajā sērijā.")
-    else:
-        print("Nav aktīvas sērijas.")
-"""
-
-"""
-# Funkcija, kas maina pozīcijas laiku noteiktā sērijā.
-def SERIJA_mainit_laiku(pozicija, jaunais_laiks):
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-        if pozicija in current_series["poziciju_saraksts"]:
-            current_series["poziciju_saraksts"][pozicija]["laiks"] = jaunais_laiks
-            print(f"Pozīcijas '{pozicija}' laiks mainīts uz {jaunais_laiks}.")
-        else:
-            print(f"Pozīcija '{pozicija}' netika atrasta aktīvajā sērijā.")
-    else :
-        print("Nav aktīvas sērijas.")
-"""
-
-""" Funkcijas saistībā ar darbinieku saraksta mainīšanu konkrētajā sērijā:"""
-"""
-# Funkcija, kas maina darbinieka efektivitāti noteiktā sērijā.
-def SERIJA_mainit_efektivitati(darbinieks, jauna_efektivitate):
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-        if darbinieks in current_series["darbinieku_saraksts"]:
-            current_series["darbinieku_saraksts"][darbinieks]["efektivitāte"] = jauna_efektivitate
-            print(f"Darbinieka '{darbinieks}' efektivitāte mainīta uz {jauna_efektivitate}.")
-        else:
-            print(f"Darbinieks '{darbinieks}' netika atrasts aktīvajā sērijā.")
-    else:
-        print("Nav aktīvas sērijas.")
-"""
-"""
-# Funkcija, kas maina darbinieka iekļaušanu/neiekļaušanu noteiktā sērijā.
-def SERIJA_mainit_ieklaušanu(darbinieks, ieklauts):
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-        if darbinieks in current_series["darbinieku_saraksts"]:
-            current_series["darbinieku_saraksts"][darbinieks]["iekļauts"] = ieklauts
-            print(f"Darbinieka '{darbinieks}' iekļaušana mainīta uz {ieklauts}.")
-        else:
-            print(f"Darbinieks '{darbinieks}' netika atrasts aktīvajā sērijā.")
-"""
             
 # Funkcija, kas pievieno darbinieku noteiktā sērijā.
 def SERIJA_pievienot_darbinieku(darbinieks, efektivitate):
@@ -180,41 +126,25 @@ def SERIJA_dzest_darbinieku(darbinieks):
     else:
         print("Nav aktīvas sērijas.")
 
-""" Globālie mainīgie, kas darbina kodu. """
-# Nodibina sēriju sarakstu, kā arī sēriju indeksu.
-seriju_saraksts = []
-aktiva_serija = None
+# Function to change the krasotavas_kludas_koeficients for the active series
+def mainit_krasotavas_koeficientu(jaunais_koeficients):
+    if aktiva_serija is not None:
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        current_series["krasotavas_koeficients"] = jaunais_koeficients
+        print(f"Aktīvās sērijas krāsošanas koeficients MAINĪTS uz {jaunais_koeficients}.")
+        saglabat_datus()
+    else:
+        print("Nav aktīvas sērijas.")
 
-# Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
-default_poziciju_saraksts = {
-    "Pozīcija 1": { "laiks": 0.66, "gabali": random.randint(1, 10) },
-    "Pozīcija 2": { "laiks": 1.33, "gabali": random.randint(1, 10) },
-    "Pozīcija 3": { "laiks": 0.5, "gabali": random.randint(1, 10) },
-    "Pozīcija 4": { "laiks": 0.33, "gabali": random.randint(1, 10) },
-    "Pozīcija 5": { "laiks": 1.33, "gabali": random.randint(1, 10) },
-    "Pozīcija 6": { "laiks": 1, "gabali": random.randint(1, 10) },
-    "Pozīcija 7": { "laiks": 0.8, "gabali": random.randint(1, 10) },
-    "Pozīcija 8": { "laiks": 2, "gabali": random.randint(1, 10) },
-    "Pozīcija 9": { "laiks": 0.66, "gabali": random.randint(1, 10) }
-}
-
-default_darbinieku_saraksts = {
-    "Māris": { "efektivitāte": 1.2, "iekļauts": False },
-    "Uldis": { "efektivitāte": 1.2, "iekļauts": False },
-    "Juris": { "efektivitāte": 1.2, "iekļauts": False },
-    "Sandis": { "efektivitāte": 0.3, "iekļauts": False },
-    "Ervīns": { "efektivitāte": 0.1, "iekļauts": False },
-    "Jānis": { "efektivitāte": 0.1, "iekļauts": False },
-    "Aigars": { "efektivitāte": 0.3, "iekļauts": False },
-    "Ingus": { "efektivitāte": 1.0, "iekļauts": True },
-    "Alvis": { "efektivitāte": 0.8, "iekļauts": False },
-    "Maksims": { "efektivitāte": 0.1, "iekļauts": False }
-}
-
-# Aprēķiniem nepieciešamie mainīgie.
-krasotavas_kludas_koeficients = 0.03
-kvalitates_parbaudes_koeficients = 0.03
-arejie_faktori = 0
+# Function to change the krasotavas_kludas_koeficients for the active series
+def mainit_kvalitates_koeficientu(jaunais_koeficients):
+    if aktiva_serija is not None:
+        current_series = seriju_saraksts[aktiva_serija - 1]
+        current_series["kvalitates_koeficients"] = jaunais_koeficients
+        print(f"Aktīvās sērijas kvalitātes koeficients MAINĪTS uz {jaunais_koeficients}.")
+        saglabat_datus()
+    else:
+        print("Nav aktīvas sērijas.")
 
 # Aprēķina cik sērijā ir daudz darba, mērot stundās.
 def aprekinat_darba_laiku():
@@ -253,11 +183,47 @@ def aprekinat_izpildes_laiku():
     else:
         return None
 
+""" Globālie mainīgie, kas darbina kodu. """
+# Nodibina sēriju sarakstu, kā arī sēriju indeksu.
+seriju_saraksts = []
+aktiva_serija = None
+
+# Nodibina default pozīciju un darbinieku sarakstus, kuri tiks iekopēti jaunās sērijās.
+default_poziciju_saraksts = {
+    "Pozīcija 1": { "laiks": 0.66, "gabali": 0 },
+    "Pozīcija 2": { "laiks": 1.33, "gabali": 0 },
+    "Pozīcija 3": { "laiks": 0.5, "gabali": 0 },
+    "Pozīcija 4": { "laiks": 0.33, "gabali": 0 },
+    "Pozīcija 5": { "laiks": 1.33, "gabali": 0 },
+    "Pozīcija 6": { "laiks": 1, "gabali": 0 },
+    "Pozīcija 7": { "laiks": 0.8, "gabali": 0 },
+    "Pozīcija 8": { "laiks": 2, "gabali": 0 },
+    "Pozīcija 9": { "laiks": 0.66, "gabali": 0 }
+}
+
+default_darbinieku_saraksts = {
+    "Māris": { "efektivitāte": 1.2, "iekļauts": True },
+    "Uldis": { "efektivitāte": 1.2, "iekļauts": True },
+    "Juris": { "efektivitāte": 1.2, "iekļauts": True },
+    "Sandis": { "efektivitāte": 0.3, "iekļauts": True },
+    "Ervīns": { "efektivitāte": 0.1, "iekļauts": True },
+    "Jānis": { "efektivitāte": 0.1, "iekļauts": True },
+    "Aigars": { "efektivitāte": 0.3, "iekļauts": True },
+    "Ingus": { "efektivitāte": 1.0, "iekļauts": True },
+    "Alvis": { "efektivitāte": 0.8, "iekļauts": True },
+    "Maksims": { "efektivitāte": 0.1, "iekļauts": True }
+}
+
+# Aprēķiniem nepieciešamie mainīgie.
+krasotavas_kludas_koeficients = 0.03
+kvalitates_parbaudes_koeficients = 0.03
+arejie_faktori = 0
+
 class Window(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Tētim programma")
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 1920, 540)
 
         self.UiComponents()
 
@@ -330,16 +296,44 @@ class Window(QWidget):
         self.atlasit_krasotavas_koeficientu.setSingleStep(0.01)
         self.atlasit_krasotavas_koeficientu.setDecimals(2)
         self.atlasit_krasotavas_koeficientu.setValue(krasotavas_kludas_koeficients)
-        self.atlasit_krasotavas_koeficientu.valueChanged.connect(self.update_krasotavas_koeficients)
+        
+        # ŠEIT IR PROBLĒMA:
+        # self.atlasit_krasotavas_koeficientu.valueChanged.connect(self.update_krasotavas_koeficients)
 
+        self.atlasit_kvalitates_koeficientu = QDoubleSpinBox(self)
+        self.atlasit_kvalitates_koeficientu.setGeometry(1270, 260, 80, 50)
+        self.atlasit_kvalitates_koeficientu.setRange(0, 0.2)
+        self.atlasit_kvalitates_koeficientu.setSingleStep(0.01)
+        self.atlasit_kvalitates_koeficientu.setDecimals(2)
+        self.atlasit_kvalitates_koeficientu.setValue(kvalitates_parbaudes_koeficients)
+
+        # ŠEIT IR PROBLĒMA:
+        # self.atlasit_kvalitates_koeficientu.valueChanged.connect(self.update_kvalitates_koeficients)
         self.showMaximized()
+
+    def update_kvalitates_koeficients_display(self):
+        if aktiva_serija is not None:
+            current_series = seriju_saraksts[aktiva_serija - 1]
+            self.atlasit_kvalitates_koeficientu.setValue(current_series["kvalitates_koeficients"])
+        else:
+            self.atlasit_krasotavas_koeficientu.setValue(kvalitates_parbaudes_koeficients)
+
+    def update_kvalitates_koeficients(self):
+        global kvalitates_parbaudes_koeficients
+        kvalitates_parbaudes_koeficients = self.atlasit_kvalitates_koeficientu.value()
+        mainit_kvalitates_koeficientu(kvalitates_parbaudes_koeficients)
+
+    def update_krasotavas_koeficients_display(self):
+        if aktiva_serija is not None:
+            current_series = seriju_saraksts[aktiva_serija - 1]
+            self.atlasit_krasotavas_koeficientu.setValue(current_series["krasotavas_koeficients"])
+        else:
+            self.atlasit_krasotavas_koeficientu.setValue(krasotavas_kludas_koeficients)
 
     def update_krasotavas_koeficients(self):
         global krasotavas_kludas_koeficients
         krasotavas_kludas_koeficients = self.atlasit_krasotavas_koeficientu.value()
-        print("Jaunais krāsošanas koeficients:", krasotavas_kludas_koeficients)
-    
-    # Krāsotavas koeficients netiek saglabāts failā, to vajag implementēt. Un arī padarīt kaut kā smukāku to ievadi !!!!!!!!!
+        mainit_krasotavas_koeficientu(krasotavas_kludas_koeficients)
 
     def dzest_darbinieks(self):
         if aktiva_serija is None:
@@ -508,6 +502,8 @@ class Window(QWidget):
         self.update_serijas_nosaukumu()
         self.update_pozicijas_datus()
         self.update_darbinieku_datus()
+        self.update_krasotavas_koeficients_display()
+        self.update_kvalitates_koeficients_display()
 
     def return_to_latest_series(self):
         if aktiva_serija is None:
@@ -520,6 +516,8 @@ class Window(QWidget):
                 self.update_serijas_nosaukumu()
                 self.update_pozicijas_datus()
                 self.update_darbinieku_datus()
+                self.update_krasotavas_koeficients_display()
+                self.update_kvalitates_koeficients_display()
 
     def next_series(self):
         if aktiva_serija is None:
@@ -529,6 +527,8 @@ class Window(QWidget):
             self.update_serijas_nosaukumu()
             self.update_pozicijas_datus()
             self.update_darbinieku_datus()
+            self.update_krasotavas_koeficients_display()
+            self.update_kvalitates_koeficients_display()
 
     def previous_series(self):
         if aktiva_serija is None:
@@ -538,6 +538,8 @@ class Window(QWidget):
             self.update_serijas_nosaukumu()
             self.update_pozicijas_datus()
             self.update_darbinieku_datus()
+            self.update_krasotavas_koeficients_display()
+            self.update_kvalitates_koeficients_display()
 
 # Running the application
 ieladet_datus()
@@ -545,12 +547,6 @@ app = QApplication(sys.argv)
 window = Window()
 window.show()
 sys.exit(app.exec())
-
-
-
-# print("Alvis dienā normu izdara 9. pozīcijai: ", int(0.8*8/0.66))	
-# print("Ingus dienā normu izdara 9. pozīcijai: ", int(1.0*8/0.66))
-# print("Māris dienā normu izdara 9. pozīcijai: ", int(1.2*8/0.66))
 
 """
 1. Tā lapiņa arī parādas blakus uz ekrāna.
