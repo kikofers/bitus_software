@@ -102,7 +102,7 @@ class DefaultPage(QWidget):
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
         # TODO: Add labels which will display some of the coefficients stored in the database.
-
+        
         lower_layout.addLayout(lower_layout_buttons)
 
         main_layout.addLayout(lower_layout)

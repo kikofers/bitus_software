@@ -44,11 +44,11 @@ class DatabaseOperations:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS workers (
                 worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                series_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
                 surname TEXT,
                 efficiency DECIMAL NOT NULL,
                 working BOOL DEFAULT 1,
+                series_id INTEGER NOT NULL,
                 FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
             )
         ''')
@@ -57,10 +57,11 @@ class DatabaseOperations:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS prices (
                 price_id INTEGER,
-                series_id INTEGER NOT NULL,
+                class, TEXT NOT NULL,
                 description TEXT NOT NULL,
                 price DECIMAL DEFAULT 0.0,
                 count INTEGER DEFAULT 0,
+                series_id INTEGER NOT NULL,
                 PRIMARY KEY (series_id, price_id),
                 FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
             )
@@ -104,6 +105,12 @@ class DatabaseOperations:
             SELECT ?, name, surname, efficiency, working FROM workers WHERE series_id = ?
         ''', (series_id, self.get_last_series_id()))
 
+        # Copy prices from the latest series
+        self.cursor.execute('''
+            INSERT INTO prices (price_id, class, description, price, count, series_id)
+            SELECT price_id, class, description, price, count, ? FROM prices WHERE series_id = ?
+        ''', (series_id, self.get_last_series_id()))
+
         self.conn.commit()
 
     # Get the latest series id.
@@ -115,6 +122,8 @@ class DatabaseOperations:
         if result is None:
             return 0
         return result[0]
+
+
 
     # Manage workers:
     # Add a worker to the worker table.
@@ -141,6 +150,8 @@ class DatabaseOperations:
         self.cursor.execute(query, (worker_id,))
         self.conn.commit()
 
+
+
     # Manage positions:
     # Add 1 to a position's value.
     def add_one(self, position, series_id):
@@ -166,10 +177,7 @@ class DatabaseOperations:
         self.cursor.execute(query, (series_id,))
         self.conn.commit()
 
-    # Get all positions for a given series_id.
-    def get_positions(self, series_id):
-        self.cursor.execute("SELECT position, value FROM positions WHERE series_id = ?", (series_id,))
-        return {row[0]: row[1] for row in self.cursor.fetchall()}
+
 
     # Manage coefficients:
     # Set the value of a coefficient.
@@ -178,10 +186,7 @@ class DatabaseOperations:
         self.cursor.execute(query, (value, coefficient_id, series_id))
         self.conn.commit()
 
-    # Get all coefficients for a given series_id.
-    def get_coefficients(self, series_id):
-        self.cursor.execute("SELECT coefficient_id, value FROM coefficients WHERE series_id = ?", (series_id,))
-        return {row[0]: row[1] for row in self.cursor.fetchall()}
+ 
 
     # Manage prices:
     # Set the price of a position.
@@ -189,6 +194,8 @@ class DatabaseOperations:
         query = "INSERT OR REPLACE INTO prices (position, price) VALUES (?, ?)"
         self.cursor.execute(query, (position, price))
         self.conn.commit()
+
+
 
     # Getters:
     # Get all workers for a given series index.
@@ -200,6 +207,23 @@ class DatabaseOperations:
     def get_prices(self):
         self.cursor.execute("SELECT * FROM prices")
         return self.cursor.fetchall()
+
+   # Get all coefficients for a given series_id.
+    def get_coefficients(self, series_id):
+        self.cursor.execute("SELECT coefficient_id, value FROM coefficients WHERE series_id = ?", (series_id,))
+        return {row[0]: row[1] for row in self.cursor.fetchall()}
+
+    # Get all positions for a given series_id.
+    def get_positions(self, series_id):
+        self.cursor.execute("SELECT position, value FROM positions WHERE series_id = ?", (series_id,))
+        return {row[0]: row[1] for row in self.cursor.fetchall()}
+
+
+
+    # Function which will create the first 19 prices. Can be used only once and only if the prices table is empty.
+    def create_prices(self):
+        self.cursor.execute("INSERT INTO prices (1, 'Rāmju montāža', price, count, series_id) VALUES (?, 'Description', 0.0, 0, 0)", (i,))
+        self.conn.commit()
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()
