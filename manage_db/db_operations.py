@@ -46,7 +46,7 @@ class DatabaseOperations:
                 worker_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 surname TEXT,
-                efficiency DECIMAL NOT NULL,
+                efficiency REAL NOT NULL,
                 working BOOL DEFAULT 1,
                 series_id INTEGER NOT NULL,
                 FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
@@ -56,13 +56,11 @@ class DatabaseOperations:
         # Price table for each position.
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS prices (
-                price_id INTEGER,
-                class, TEXT NOT NULL,
+                price_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 description TEXT NOT NULL,
-                price DECIMAL DEFAULT 0.0,
+                price REAL DEFAULT 0.0,
                 count INTEGER DEFAULT 0,
                 series_id INTEGER NOT NULL,
-                PRIMARY KEY (series_id, price_id),
                 FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
             )
         ''')
@@ -105,10 +103,10 @@ class DatabaseOperations:
             SELECT ?, name, surname, efficiency, working FROM workers WHERE series_id = ?
         ''', (series_id, self.get_last_series_id()))
 
-        # Copy prices from the latest series
+        # Copy prices from the latest series, but use the default value for count
         self.cursor.execute('''
-            INSERT INTO prices (price_id, class, description, price, count, series_id)
-            SELECT price_id, class, description, price, count, ? FROM prices WHERE series_id = ?
+            INSERT INTO prices (description, price, series_id)
+            SELECT description, price, ? FROM prices WHERE series_id = ?
         ''', (series_id, self.get_last_series_id()))
 
         self.conn.commit()
@@ -189,10 +187,16 @@ class DatabaseOperations:
  
 
     # Manage prices:
-    # Set the price of a position.
-    def set_price(self, position, price):
-        query = "INSERT OR REPLACE INTO prices (position, price) VALUES (?, ?)"
-        self.cursor.execute(query, (position, price))
+    # Update the price for a price in a given series_id.
+    def set_price(self, price_id, series_id, price):
+        query = "UPDATE prices SET price = ? WHERE price_id = ? AND series_id = ?"
+        self.cursor.execute(query, (price, price_id, series_id))
+        self.conn.commit()
+
+    # Add a new price to the series in a given series_id.
+    def add_price(self, series_id, description, price):
+        query = "INSERT INTO prices (description, price, series_id) VALUES (?, ?, ?)"
+        self.cursor.execute(query, (description, price, series_id))
         self.conn.commit()
 
 
@@ -203,9 +207,9 @@ class DatabaseOperations:
         self.cursor.execute("SELECT * FROM workers WHERE series_id = ?", (series_id,))
         return self.cursor.fetchall()
 
-    # Get all prices.
-    def get_prices(self):
-        self.cursor.execute("SELECT * FROM prices")
+    # Get all prices for a given series index.
+    def get_prices(self, series_id):
+        self.cursor.execute("SELECT * FROM prices WHERE series_id = ?", (series_id,))
         return self.cursor.fetchall()
 
    # Get all coefficients for a given series_id.
@@ -220,10 +224,40 @@ class DatabaseOperations:
 
 
 
-    # Function which will create the first 19 prices. Can be used only once and only if the prices table is empty.
-    def create_prices(self):
-        self.cursor.execute("INSERT INTO prices (1, 'Rāmju montāža', price, count, series_id) VALUES (?, 'Description', 0.0, 0, 0)", (i,))
+    # Function which will create the first 18 already pre-defined prices.
+    def add_predefined_prices(self):
+        prices = [
+            ("DR (sliekšņi)", 4.20),
+            ("DR (sliekšņi + plēve)", 5.67),
+            ("LR + DR (plastmasas stiprinājumi)", 1.68),
+            ("LR (montāžas plēve)", 1.47),
+            ("LR (plastmasas stiprinājumi/mont. plēve)", 2.94),
+            ("LV alumīnijs", 2.37),
+            ("LV koks", 1.05),
+            ("DV alumīnijs", 6.30),
+            ("DV koks", 2.63),
+            ("DV bloka", 4.62),
+            ("silikona logs 1-4", 1.84),
+            ("logu montāža <3.5 m2", 5.88),
+            ("logu montāža >3.5 m2 (lielie)", 18.90),
+            ("speciālie + slīpie + eļļots", 25.00),
+            ("balkona durvju montāža", 4.83),
+            ("ārdurvju montāža", 9.03),
+            ("ugunsdrošo durvju montāža", 15.00),
+            ("durvju pildiņi, stiklošana", 0.53),
+            ("durvju rāmju savienošana (pāris)", 5.25)
+        ]
+
+        series_id = self.get_last_series_id()
+
+        for price in prices:
+            self.cursor.execute('''
+                INSERT INTO prices (description, price, series_id) VALUES (?, ?, ?)
+            ''', (price[0], price[1], series_id))
+
         self.conn.commit()
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()
+database.create_series()
+database.add_predefined_prices()

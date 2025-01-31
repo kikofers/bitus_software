@@ -127,9 +127,6 @@ class DefaultPage(QWidget):
         positions = database.get_positions(series_id)
         if positions is None:
             return
-        
-        prices = {price['id']: price['price'] for price in database.get_prices()}
-        self.position_table.setRowCount(len(positions) - 1)  # Exclude the series_id column
 
         for row, (position, count) in enumerate(positions.items()):
             if position == 'series_id':
@@ -137,7 +134,6 @@ class DefaultPage(QWidget):
 
             position_item = QTableWidgetItem(position)
             count_item = QTableWidgetItem(str(count))
-            price_item = QTableWidgetItem(str(count * prices.get(row + 1, 0)))  # Calculate price
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+")
@@ -153,7 +149,6 @@ class DefaultPage(QWidget):
 
             self.position_table.setItem(row, 0, position_item)
             self.position_table.setItem(row, 1, count_item)
-            self.position_table.setItem(row, 3, price_item)
             self.position_table.setCellWidget(row, 2, button_widget)
 
     def populate_worker_table(self):
