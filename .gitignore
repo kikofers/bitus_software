@@ -1,1 +1,5 @@
-serijas_data.json
+manage_db/__pycache__/
+manage_db/db.sqlite3
+tetim_programma.xlsx
+tetim_programma.py
+test.py

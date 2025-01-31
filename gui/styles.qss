@@ -1,0 +1,22 @@
+/* Labels */
+mainLabel
+
+secondaryLabel
+
+
+/* Main window buttons */
+navButton
+
+latestSeriesButton
+
+newSeriesButton
+
+settingsButton
+
+
+/* Worker management buttons */
+addButton
+
+removeButton
+
+modifyButton
