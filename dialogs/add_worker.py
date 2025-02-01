@@ -42,7 +42,7 @@ class AddWorkerDialog(QDialog):
         efficiency = self.efficiency.text()
 
         if name and surname and efficiency:
-            database.add_worker(name, surname, efficiency)
+            database.add_series_worker(self.parent().main_window.series_index, name, surname, efficiency)
             self.parent().update_page()
             self.close()
         else:

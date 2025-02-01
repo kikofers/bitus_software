@@ -1,6 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
 
+from dialogs.add_worker import AddWorkerDialog
+from dialogs.delete_worker import DeleteWorkerDialog
+
 from manage_database.database import database
 
 class DefaultPage(QWidget):
@@ -107,7 +110,7 @@ class DefaultPage(QWidget):
         lower_layout_buttons.addWidget(self.add_worker_button, alignment=Qt.AlignTop)
 
         self.remove_worker_button = QPushButton("Noņemt Darbinieku")
-        #self.remove_worker_button.clicked.connect(self.remove_worker)
+        self.remove_worker_button.clicked.connect(self.delete_worker)
         self.remove_worker_button.setObjectName("removeButton")
         lower_layout_buttons.addWidget(self.remove_worker_button, alignment=Qt.AlignTop)
 
@@ -121,10 +124,10 @@ class DefaultPage(QWidget):
         self.settings_button.setObjectName("settingsButton")
         lower_layout_buttons.addWidget(self.settings_button)
 
-        self.restart_positions_button = QPushButton("Atjaunot Pozīcijas")
-        self.restart_positions_button.clicked.connect(self.restart_positions)
-        self.restart_positions_button.setObjectName("restartButton")
-        lower_layout_buttons.addWidget(self.restart_positions_button)
+        self.reset_positions_button = QPushButton("Atjaunot Pozīcijas")
+        self.reset_positions_button.clicked.connect(self.reset_positions)
+        self.reset_positions_button.setObjectName("restartButton")
+        lower_layout_buttons.addWidget(self.reset_positions_button)
 
         lower_layout.addLayout(lower_layout_buttons)
 
@@ -134,41 +137,36 @@ class DefaultPage(QWidget):
 
         self.update_page()
 
-    def create_new_series(self):
-        database.create_series()
-        self.main_window.series_index = database.get_last_series_id()
-        self.update_page()
 
-    def previous_series(self):
-        if self.main_window.series_index and self.main_window.series_index > 1:
-            self.main_window.series_index -= 1
-            self.update_page()
 
-    def next_series(self):
-        if self.main_window.series_index and self.main_window.series_index < database.get_last_series_id():
-            self.main_window.series_index += 1
-            self.update_page()
-        
-    def latest_series(self):
-        self.main_window.series_index = database.get_last_series_id()
-        self.update_page()
-
+    # --- Dialog Functions: ---
+    # Add worker dialog.
     def add_worker(self):
-        name, ok = QInputDialog.getText(self, "Pievienot Darbinieku", "Ievadiet darbinieka vārdu:")
-        if ok:
-            surname, ok = QInputDialog.getText(self, "Pievienot Darbinieku", "Ievadiet darbinieka uzvārdu:")
-            if ok:
-                efficiency, ok = QInputDialog.getDouble(self, "Pievienot Darbinieku", "Ievadiet darbinieka efektivitāti:", min=0.0, max=1.0)
-                if ok:
-                    database.add_series_worker(self.main_window.series_index, name, surname, efficiency)
-                    self.update_page()
+        dialog = AddWorkerDialog(self)
+        dialog.exec_()
 
+    def delete_worker(self):
+        dialog = DeleteWorkerDialog(self)
+        dialog.exec_()
+
+    # Set's the value of a position to the inputed number.
+    def set_position_value(self, position, series_id):
+        new_value, ok = QInputDialog.getInt(self, "Set Position Value", f"Set new value for {position}:", min=0)
+        if ok:
+            database.set_position(position, series_id, new_value)
+            self.update_page()
+
+
+
+    # --- Update Functions: ---
+    # The main function called when it's necessary to update the page's contents.
     def update_page(self):
         self.series_label_color()
         self.navigation_button_color()
         self.populate_position_table()
         self.populate_worker_table()
 
+    # Updates the position table.
     def populate_position_table(self):
         series_id = self.main_window.series_index
 
@@ -202,19 +200,7 @@ class DefaultPage(QWidget):
             self.position_table.setItem(row, 1, count_item)
             self.position_table.setCellWidget(row, 2, button_widget)
 
-    def set_position_value(self, position, series_id):
-        new_value, ok = QInputDialog.getInt(self, "Set Position Value", f"Set new value for {position}:", min=0)
-        if ok:
-            database.set_position(position, series_id, new_value)
-            self.update_page()
-
-    def modify_position_value(self, position, series_id, delta):
-        if delta == 1:
-            database.add_one(position, series_id)
-        elif delta == -1:
-            database.remove_one(position, series_id)
-        self.update_page()
-
+    # Updates the workers table.
     def populate_worker_table(self):
         workers = database.get_series_workers(self.main_window.series_index)
         if workers is None:
@@ -232,14 +218,7 @@ class DefaultPage(QWidget):
             self.workers_table.setItem(row, 1, efficiency_item)
             self.workers_table.setCellWidget(row, 2, button_item)
 
-    def toggle_worker_status(self, worker_id):
-        database.toggle_working(worker_id)
-        self.populate_worker_table()  # Refresh the table
-
-    def restart_positions(self):
-        database.reset_positions(self.main_window.series_index)
-        self.update_page()
-
+    # Update's series label color.
     def series_label_color(self):
         colors = ["black", "blue", "green", "red"]
         selected_color = colors[(self.main_window.series_index - 1) % 4] if self.main_window.series_index else "orange"
@@ -247,11 +226,41 @@ class DefaultPage(QWidget):
         self.series_label.setStyleSheet(f"color: {selected_color};")
         self.series_label.show()
 
+
+
+    # --- Navigation Buttons: ---
+    # Create a new series.
+    def create_new_series(self):
+        database.create_series()
+        self.main_window.series_index = database.get_last_series_id()
+        self.update_page()
+
+    # Move to the previous series.
+    def previous_series(self):
+        if self.main_window.series_index and self.main_window.series_index > 1:
+            self.main_window.series_index -= 1
+            self.update_page()
+
+    # Move to the next series.
+    def next_series(self):
+        if self.main_window.series_index and self.main_window.series_index < database.get_last_series_id():
+            self.main_window.series_index += 1
+            self.update_page()
+        
+    # Move to the latest series.
+    def latest_series(self):
+        self.main_window.series_index = database.get_last_series_id()
+        self.update_page()
+
+    # Controls when certain navigation buttons should be disabled.
     def navigation_button_color(self):
         self.previous_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index > 1)
         self.next_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index < database.get_last_series_id())
         self.latest_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index != database.get_last_series_id())
 
+
+
+    # --- Other Functions: ---
     # Helper function to create the two tables and keep the code clean.
     def create_table(self, table, headers):
         table.setColumnCount(len(headers))
@@ -260,3 +269,21 @@ class DefaultPage(QWidget):
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    # Toggles worker's status.
+    def toggle_worker_status(self, worker_id):
+        database.toggle_working(worker_id)
+        self.populate_worker_table()  # Refresh the table
+
+    # Resetts the values for position table.
+    def reset_positions(self):
+        database.reset_positions(self.main_window.series_index)
+        self.update_page()
+
+    # Controls the modified position value.
+    def modify_position_value(self, position, series_id, delta):
+        if delta == 1:
+            database.add_one(position, series_id)
+        elif delta == -1:
+            database.remove_one(position, series_id)
+        self.update_page()
