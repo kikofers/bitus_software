@@ -67,7 +67,7 @@ class DatabaseOperations:
 
         self.conn.commit()
 
-    # Manage series:
+    # --- Manage series: ---
     # Create a new series.
     def create_series(self):
         # Insert into the series table
@@ -83,11 +83,12 @@ class DatabaseOperations:
                 VALUES (?, 0, ?)
             ''', (position, series_id))
 
-        # Copy coefficients from the latest series (if exists)
+        # Copy coefficients from the previous series (if exists)
+        previous_series_id = series_id - 1
         self.cursor.execute('''
             INSERT INTO coefficients (coefficient_id, value, series_id)
             SELECT coefficient_id, value, ? FROM coefficients WHERE series_id = ?
-        ''', (series_id, self.get_last_series_id()))
+        ''', (series_id, previous_series_id))
 
         # If no previous series exists, initialize coefficients with default value 0
         if self.cursor.rowcount == 0:  # No rows were copied
@@ -97,17 +98,19 @@ class DatabaseOperations:
                     VALUES (?, 0, ?)
                 ''', (coefficient_id, series_id))
 
-        # Copy workers from the latest series
+        # Copy workers from the previous series
+        previous_series_id = series_id - 1
         self.cursor.execute('''
             INSERT INTO workers (series_id, name, surname, efficiency, working)
             SELECT ?, name, surname, efficiency, working FROM workers WHERE series_id = ?
-        ''', (series_id, self.get_last_series_id()))
+        ''', (series_id, previous_series_id))
 
-        # Copy prices from the latest series, but use the default value for count
+        # Copy prices from the previous series, but use the default value for count
+        previous_series_id = series_id - 1
         self.cursor.execute('''
             INSERT INTO prices (description, price, series_id)
             SELECT description, price, ? FROM prices WHERE series_id = ?
-        ''', (series_id, self.get_last_series_id()))
+        ''', (series_id, previous_series_id))
 
         self.conn.commit()
 
@@ -123,34 +126,33 @@ class DatabaseOperations:
 
 
 
-    # Manage workers:
+    # --- Manage workers: ---
     # Add a worker to the worker table.
     def add_series_worker(self, series_id, name, surname, efficiency):
         query = "INSERT INTO workers (series_id, name, surname, efficiency) VALUES (?, ?, ?, ?)"
         self.cursor.execute(query, (series_id, name, surname, efficiency))
         self.conn.commit()
 
-    # Delete a worker by given ID.
     def delete_worker(self, worker_id):
-        query = "DELETE FROM workers WHERE id = ?"
+        query = "DELETE FROM workers WHERE worker_id = ?"
         self.cursor.execute(query, (worker_id,))
         self.conn.commit()
 
     # Edit a worker's efficiency.
     def edit_worker(self, worker_id, efficiency):
-        query = "UPDATE workers SET efficiency = ? WHERE id = ?"
+        query = "UPDATE workers SET efficiency = ? WHERE worker_id = ?"
         self.cursor.execute(query, (efficiency, worker_id))
         self.conn.commit()
 
     # Reverse the working status of a worker.
     def toggle_working(self, worker_id):
-        query = "UPDATE workers SET working = NOT working WHERE id = ?"
+        query = "UPDATE workers SET working = NOT working WHERE worker_id = ?"
         self.cursor.execute(query, (worker_id,))
         self.conn.commit()
 
 
 
-    # Manage positions:
+    # --- Manage positions: ---
     # Add 1 to a position's value.
     def add_one(self, position, series_id):
         query = "UPDATE positions SET value = value + 1 WHERE position = ? AND series_id = ?"
@@ -159,9 +161,13 @@ class DatabaseOperations:
 
     # Remove 1 from a position's value.
     def remove_one(self, position, series_id):
-        query = "UPDATE positions SET value = value - 1 WHERE position = ? AND series_id = ?"
-        self.cursor.execute(query, (position, series_id))
-        self.conn.commit()
+        # Check current value
+        self.cursor.execute("SELECT value FROM positions WHERE position = ? AND series_id = ?", (position, series_id))
+        current_value = self.cursor.fetchone()[0]
+        if current_value > 0:
+            query = "UPDATE positions SET value = value - 1 WHERE position = ? AND series_id = ?"
+            self.cursor.execute(query, (position, series_id))
+            self.conn.commit()
 
     # Set the value of a position.
     def set_position(self, position, series_id, value):
@@ -177,7 +183,7 @@ class DatabaseOperations:
 
 
 
-    # Manage coefficients:
+    # --- Manage coefficients: ---
     # Set the value of a coefficient.
     def set_coefficient(self, coefficient_id, series_id, value):
         query = "UPDATE coefficients SET value = ? WHERE coefficient_id = ? AND series_id = ?"
@@ -186,11 +192,11 @@ class DatabaseOperations:
 
  
 
-    # Manage prices:
+    # --- Manage prices: ---
     # Update the price for a price in a given series_id.
-    def set_price(self, price_id, series_id, price):
-        query = "UPDATE prices SET price = ? WHERE price_id = ? AND series_id = ?"
-        self.cursor.execute(query, (price, price_id, series_id))
+    def set_price(self, price, price_id):
+        query = "UPDATE prices SET price = ? WHERE price_id = ?"
+        self.cursor.execute(query, (price, price_id))
         self.conn.commit()
 
     # Add a new price to the series in a given series_id.
@@ -201,16 +207,16 @@ class DatabaseOperations:
 
 
 
-    # Getters:
+    # --- Getters: ---
     # Get all workers for a given series index.
     def get_series_workers(self, series_id):
-        self.cursor.execute("SELECT * FROM workers WHERE series_id = ?", (series_id,))
-        return self.cursor.fetchall()
+        self.cursor.execute("SELECT worker_id, name, surname, efficiency, working FROM workers WHERE series_id = ?", (series_id,))
+        return {row[0]: {"worker_id": row[0], "name": row[1], "surname": row[2], "efficiency": row[3], "working": row[4]} for row in self.cursor.fetchall()}
 
     # Get all prices for a given series index.
     def get_prices(self, series_id):
         self.cursor.execute("SELECT * FROM prices WHERE series_id = ?", (series_id,))
-        return self.cursor.fetchall()
+        return {row[0]: {"description": row[1], "price": row[2], "count": row[3]} for row in self.cursor.fetchall()}
 
    # Get all coefficients for a given series_id.
     def get_coefficients(self, series_id):
@@ -259,5 +265,3 @@ class DatabaseOperations:
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()
-database.create_series()
-database.add_predefined_prices()

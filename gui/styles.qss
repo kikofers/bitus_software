@@ -11,12 +11,15 @@ latestSeriesButton
 
 newSeriesButton
 
-settingsButton
 
 
-/* Worker management buttons */
+/* Series anagement buttons */
 addButton
 
 removeButton
 
 modifyButton
+
+settingsButton
+
+restartButton

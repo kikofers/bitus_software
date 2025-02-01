@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
 
 from manage_db.db_operations import database
@@ -42,40 +42,55 @@ class DefaultPage(QWidget):
         self.new_series_button.setObjectName("newSeriesButton")
         upper_button_layout.addWidget(self.new_series_button)
 
-        self.settings_button = QPushButton("Iestatījumi")
-        #self.settings_button.clicked.connect(self.settings)
-        self.settings_button.setObjectName("settingsButton")
-        upper_button_layout.addWidget(self.settings_button)
-
         main_layout.addLayout(upper_button_layout)
 
 
 
         lower_layout = QHBoxLayout()
 
-        position_layout = QVBoxLayout()
-        self.position_label = QLabel("Pozīcijas")
+        left_layout = QVBoxLayout()
+        self.position_label = QLabel("Pozīciju Tabula")
         self.position_label.setObjectName("secondaryLabel")
         self.position_label.setAlignment(Qt.AlignCenter)
 
         self.position_table = QTableWidget()
         self.create_table(self.position_table, ["Pozīcija", "Gabalu Skaits", "Mainīt Skaitu"])
 
-        position_layout.addWidget(self.position_label)
-        position_layout.addWidget(self.position_table)
-        lower_layout.addLayout(position_layout)
+        self.price_label = QLabel("Cenas Tabula")
+        self.price_label.setObjectName("secondaryLabel")
+        self.price_label.setAlignment(Qt.AlignCenter)
 
-        workers_layout = QVBoxLayout()
-        self.workers_label = QLabel("Sērijas Darbinieki")
+        self.price_table = QTableWidget()
+        self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabalu Skaits"])
+
+        left_layout.addWidget(self.position_label)
+        left_layout.addWidget(self.position_table)
+        left_layout.addWidget(self.price_label)
+        left_layout.addWidget(self.price_table)
+
+        lower_layout.addLayout(left_layout)
+
+        right_layout = QVBoxLayout()
+        self.workers_label = QLabel("Sērijas Darbinieku Tabula")
         self.workers_label.setObjectName("secondaryLabel")
         self.workers_label.setAlignment(Qt.AlignCenter)
 
         self.workers_table = QTableWidget()
         self.create_table(self.workers_table, ["Darbinieks", "Efektivitāte", "Strādās Šajā Sērijā"])
 
-        workers_layout.addWidget(self.workers_label)
-        workers_layout.addWidget(self.workers_table)
-        lower_layout.addLayout(workers_layout)
+        self.results_label = QLabel("Sērijas Apkopojums")
+        self.results_label.setObjectName("secondaryLabel")
+        self.results_label.setAlignment(Qt.AlignCenter)
+
+        self.results_table = QTableWidget()
+        self.create_table(self.results_table, ["Kas", "Cik"])
+        self.results_table.horizontalHeader().setVisible(False)
+
+        right_layout.addWidget(self.workers_label)
+        right_layout.addWidget(self.workers_table)
+        right_layout.addWidget(self.results_label)
+        right_layout.addWidget(self.results_table)
+        lower_layout.addLayout(right_layout)
 
 
 
@@ -87,7 +102,7 @@ class DefaultPage(QWidget):
         lower_layout_buttons.addWidget(self.button_label, alignment=Qt.AlignTop)
 
         self.add_worker_button = QPushButton("Pievienot Darbinieku")
-        #self.add_worker_button.clicked.connect(self.add_worker)
+        self.add_worker_button.clicked.connect(self.add_worker)
         self.add_worker_button.setObjectName("addButton")
         lower_layout_buttons.addWidget(self.add_worker_button, alignment=Qt.AlignTop)
 
@@ -101,8 +116,16 @@ class DefaultPage(QWidget):
         self.modify_worker_efficiency_button.setObjectName("modifyButton")
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
-        # TODO: Add labels which will display some of the coefficients stored in the database.
-        
+        self.settings_button = QPushButton("Koeficientu Iestatījumi")
+        #self.settings_button.clicked.connect(self.settings)
+        self.settings_button.setObjectName("settingsButton")
+        lower_layout_buttons.addWidget(self.settings_button)
+
+        self.restart_positions_button = QPushButton("Atjaunot Pozīcijas")
+        self.restart_positions_button.clicked.connect(self.restart_positions)
+        self.restart_positions_button.setObjectName("restartButton")
+        lower_layout_buttons.addWidget(self.restart_positions_button)
+
         lower_layout.addLayout(lower_layout_buttons)
 
         main_layout.addLayout(lower_layout)
@@ -112,9 +135,19 @@ class DefaultPage(QWidget):
         self.update_page()
 
     def create_new_series(self):
-        self.main_window.series_index = database.get_last_series_id()
         database.create_series()
+        self.main_window.series_index = database.get_last_series_id()
         self.update_page()
+
+    def add_worker(self):
+        name, ok = QInputDialog.getText(self, "Pievienot Darbinieku", "Ievadiet darbinieka vārdu:")
+        if ok:
+            surname, ok = QInputDialog.getText(self, "Pievienot Darbinieku", "Ievadiet darbinieka uzvārdu:")
+            if ok:
+                efficiency, ok = QInputDialog.getDouble(self, "Pievienot Darbinieku", "Ievadiet darbinieka efektivitāti:", min=0.0, max=1.0)
+                if ok:
+                    database.add_series_worker(self.main_window.series_index, name, surname, efficiency)
+                    self.update_page()
 
     def update_page(self):
         self.series_label_color()
@@ -128,21 +161,24 @@ class DefaultPage(QWidget):
         if positions is None:
             return
 
-        for row, (position, count) in enumerate(positions.items()):
-            if position == 'series_id':
-                continue
+        self.position_table.setRowCount(len(positions))
 
-            position_item = QTableWidgetItem(position)
+        for row, (position, count) in enumerate(positions.items()):
+            position_item = QTableWidgetItem(str(position))
             count_item = QTableWidgetItem(str(count))
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+")
             decrease_button = QPushButton("-")
-            reset_button = QPushButton("Reset")
+            set_button = QPushButton("Set")
+
+            increase_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, 1))
+            decrease_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, -1))
+            set_button.clicked.connect(lambda _, pos=position: self.set_position_value(pos, series_id))
 
             button_layout.addWidget(increase_button)
             button_layout.addWidget(decrease_button)
-            button_layout.addWidget(reset_button)
+            button_layout.addWidget(set_button)
 
             button_widget = QWidget()
             button_widget.setLayout(button_layout)
@@ -151,21 +187,43 @@ class DefaultPage(QWidget):
             self.position_table.setItem(row, 1, count_item)
             self.position_table.setCellWidget(row, 2, button_widget)
 
+    def set_position_value(self, position, series_id):
+        new_value, ok = QInputDialog.getInt(self, "Set Position Value", f"Set new value for {position}:", min=0)
+        if ok:
+            database.set_position(position, series_id, new_value)
+            self.update_page()
+
+    def modify_position_value(self, position, series_id, delta):
+        if delta == 1:
+            database.add_one(position, series_id)
+        elif delta == -1:
+            database.remove_one(position, series_id)
+        self.update_page()
+
     def populate_worker_table(self):
         workers = database.get_series_workers(self.main_window.series_index)
         if workers is None:
             return
-        
+
         self.workers_table.setRowCount(len(workers))
 
-        for row, worker in enumerate(workers):
+        for row, worker in enumerate(workers.values()):
             name_item = QTableWidgetItem(f"{worker['name']} {worker['surname']}")
             efficiency_item = QTableWidgetItem(str(worker['efficiency']))
-            button_item = QPushButton("Strādā" if worker['is_working'] else "Nestrādā")
+            button_item = QPushButton("Strādā" if worker['working'] else "Nestrādā")
+            button_item.clicked.connect(lambda _, w=worker: self.toggle_worker_status(w['worker_id']))
 
             self.workers_table.setItem(row, 0, name_item)
             self.workers_table.setItem(row, 1, efficiency_item)
             self.workers_table.setCellWidget(row, 2, button_item)
+
+    def toggle_worker_status(self, worker_id):
+        database.toggle_working(worker_id)
+        self.populate_worker_table()  # Refresh the table
+
+    def restart_positions(self):
+        database.reset_positions(self.main_window.series_index)
+        self.update_page()
 
     def series_label_color(self):
         colors = ["black", "blue", "green", "red"]
