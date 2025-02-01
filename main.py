@@ -2,18 +2,6 @@ from gui.window import MainWindow
 from PyQt5.QtWidgets import QApplication
 import sys
 
-# TODO: izlēmu, ka priekš ātrdarbības es izveidošu lokālu datu kopiju, kurā saglabāšu
-#       nolasītos datus no datubāzes. Tādējādi, ja lietotājs veic izmaiņas, es varu
-#       veikt tās lokāli, un paralēli atjaunot datubāzi, nevis katru reizi nolasīt datus.
-#       Lokālie dati tiks attēloti tabulās.
-#
-#       Ir arī updatota cenu tabula datubāzē.
-#
-#       Principā nāksies pilnīgi katru tabulu no datubāzes saglabāt lokāli, lai programma ir ātra.
-#
-#       Jāizlasa ko DeepSeek AI teiks par to tabulu refresh. Un tad principā skatoties pēc test.py
-#       faila varēšu saprast ko darīt tālāk.
-
 """ Funkcijas, kuras aprēķina darba laiku un izpildes laiku.
 # Aprēķina cik sērijā ir daudz darba, mērot stundās.
 def aprekinat_darba_laiku():

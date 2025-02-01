@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from gui.default import DefaultPage
 from gui.settings import SettingsPage
 
-from manage_db.db_operations import database
+from manage_database.database import database
 
 class MainWindow(QMainWindow):
     def __init__(self):

@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
 
-from manage_db.db_operations import database
+from manage_database.database import database
 
 class DefaultPage(QWidget):
     def __init__(self, main_window):
@@ -23,17 +23,17 @@ class DefaultPage(QWidget):
         upper_button_layout.addWidget(self.series_label)
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
-        #self.previous_series_button.clicked.connect(self.previous_series)
+        self.previous_series_button.clicked.connect(self.previous_series)
         self.previous_series_button.setObjectName("navButton")
         upper_button_layout.addWidget(self.previous_series_button)
 
         self.next_series_button = QPushButton("Nākamā sērija")
-        #self.next_series_button.clicked.connect(self.next_series)
+        self.next_series_button.clicked.connect(self.next_series)
         self.next_series_button.setObjectName("navButton")
         upper_button_layout.addWidget(self.next_series_button)
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
-        #self.latest_series_button.clicked.connect(self.latest_series)
+        self.latest_series_button.clicked.connect(self.latest_series)
         self.latest_series_button.setObjectName("latestSeriesButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
@@ -139,6 +139,20 @@ class DefaultPage(QWidget):
         self.main_window.series_index = database.get_last_series_id()
         self.update_page()
 
+    def previous_series(self):
+        if self.main_window.series_index and self.main_window.series_index > 1:
+            self.main_window.series_index -= 1
+            self.update_page()
+
+    def next_series(self):
+        if self.main_window.series_index and self.main_window.series_index < database.get_last_series_id():
+            self.main_window.series_index += 1
+            self.update_page()
+        
+    def latest_series(self):
+        self.main_window.series_index = database.get_last_series_id()
+        self.update_page()
+
     def add_worker(self):
         name, ok = QInputDialog.getText(self, "Pievienot Darbinieku", "Ievadiet darbinieka vārdu:")
         if ok:
@@ -151,6 +165,7 @@ class DefaultPage(QWidget):
 
     def update_page(self):
         self.series_label_color()
+        self.navigation_button_color()
         self.populate_position_table()
         self.populate_worker_table()
 
@@ -231,6 +246,11 @@ class DefaultPage(QWidget):
         self.series_label.setText(f"Sērija {self.main_window.series_index if self.main_window.series_index else 'Nav'}")
         self.series_label.setStyleSheet(f"color: {selected_color};")
         self.series_label.show()
+
+    def navigation_button_color(self):
+        self.previous_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index > 1)
+        self.next_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index < database.get_last_series_id())
+        self.latest_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index != database.get_last_series_id())
 
     # Helper function to create the two tables and keep the code clean.
     def create_table(self, table, headers):

@@ -3,7 +3,7 @@ import time
 
 class DatabaseOperations:
     def __init__(self):
-        self.conn = sqlite3.connect('manage_db/db.sqlite3')
+        self.conn = sqlite3.connect('manage_database/database.sqlite3')
         self.cursor = self.conn.cursor()
         self.conn.execute("PRAGMA foreign_keys = ON;")  # Ensure foreign keys are enforced.
         self.create_tables()
