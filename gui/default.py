@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 
 from dialogs.add_worker import AddWorkerDialog
 from dialogs.delete_worker import DeleteWorkerDialog
+from dialogs.worker_efficiency import EditWorkerEfficiencyDialog
 
 from manage_database.database import database
 
@@ -57,14 +58,14 @@ class DefaultPage(QWidget):
         self.position_label.setAlignment(Qt.AlignCenter)
 
         self.position_table = QTableWidget()
-        self.create_table(self.position_table, ["Pozīcija", "Gabalu Skaits", "Mainīt Skaitu"])
+        self.create_table(self.position_table, ["Pozīcija", "Gabali", "Mainīt Skaitu"])
 
         self.price_label = QLabel("Cenas Tabula")
         self.price_label.setObjectName("secondaryLabel")
         self.price_label.setAlignment(Qt.AlignCenter)
 
         self.price_table = QTableWidget()
-        self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabalu Skaits"])
+        self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabali", "Mainīt Skaitu", "KOPĀ"])
 
         left_layout.addWidget(self.position_label)
         left_layout.addWidget(self.position_table)
@@ -109,13 +110,13 @@ class DefaultPage(QWidget):
         self.add_worker_button.setObjectName("addButton")
         lower_layout_buttons.addWidget(self.add_worker_button, alignment=Qt.AlignTop)
 
-        self.remove_worker_button = QPushButton("Noņemt Darbinieku")
+        self.remove_worker_button = QPushButton("Dzēst Darbinieku")
         self.remove_worker_button.clicked.connect(self.delete_worker)
         self.remove_worker_button.setObjectName("removeButton")
         lower_layout_buttons.addWidget(self.remove_worker_button, alignment=Qt.AlignTop)
 
         self.modify_worker_efficiency_button = QPushButton("Mainīt Darbinieka Efektivitāti")
-        #self.modify_worker_efficiency_button.clicked.connect(self.modify_worker_efficiency)
+        self.modify_worker_efficiency_button.clicked.connect(self.modify_worker_efficiency)
         self.modify_worker_efficiency_button.setObjectName("modifyButton")
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
@@ -145,8 +146,14 @@ class DefaultPage(QWidget):
         dialog = AddWorkerDialog(self)
         dialog.exec_()
 
+    # Delete worker dialog.
     def delete_worker(self):
         dialog = DeleteWorkerDialog(self)
+        dialog.exec_()
+
+    # Modify worker's efficiency dialog.
+    def modify_worker_efficiency(self):
+        dialog = EditWorkerEfficiencyDialog(self)
         dialog.exec_()
 
     # Set's the value of a position to the inputed number.
@@ -156,6 +163,12 @@ class DefaultPage(QWidget):
             database.set_position(position, series_id, new_value)
             self.update_page()
 
+    # Set's the value of a price to the inputed number.
+    def set_price_count(self, price_id):
+        new_value, ok = QInputDialog.getInt(self, "Set Price Value", f"Set new value for {price_id}:", min=0)
+        if ok:
+            database.set_price_count(new_value, price_id)
+            self.update_page()
 
 
     # --- Update Functions: ---
@@ -165,12 +178,11 @@ class DefaultPage(QWidget):
         self.navigation_button_color()
         self.populate_position_table()
         self.populate_worker_table()
+        self.populate_price_table()
 
     # Updates the position table.
     def populate_position_table(self):
-        series_id = self.main_window.series_index
-
-        positions = database.get_positions(series_id)
+        positions = database.get_positions(self.main_window.series_index)
         if positions is None:
             return
 
@@ -181,9 +193,9 @@ class DefaultPage(QWidget):
             count_item = QTableWidgetItem(str(count))
 
             button_layout = QHBoxLayout()
-            increase_button = QPushButton("+")
-            decrease_button = QPushButton("-")
-            set_button = QPushButton("Set")
+            increase_button = QPushButton("+1")
+            decrease_button = QPushButton("-1")
+            set_button = QPushButton("Ievadīt")
 
             increase_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, 1))
             decrease_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, -1))
@@ -217,6 +229,42 @@ class DefaultPage(QWidget):
             self.workers_table.setItem(row, 0, name_item)
             self.workers_table.setItem(row, 1, efficiency_item)
             self.workers_table.setCellWidget(row, 2, button_item)
+
+    # Update price table.
+    def populate_price_table(self):
+        prices = database.get_prices(self.main_window.series_index)
+        if prices is None:
+            return
+
+        self.price_table.setRowCount(len(prices))
+
+        for row, price in enumerate(prices.values()):
+            description_item = QTableWidgetItem(price["description"])
+            price_item = QTableWidgetItem(str(price["price"]))
+            count_item = QTableWidgetItem(str(price["count"]))
+            total_item = QTableWidgetItem(f"{round(price['price'] * price['count'], 2):.2f}€")
+
+            button_layout = QHBoxLayout()
+            increase_button = QPushButton("+1")
+            decrease_button = QPushButton("-1")
+            set_button = QPushButton("Ievadīt")
+            
+            increase_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, 1))
+            decrease_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, -1))
+            set_button.clicked.connect(lambda _, price_id=price["price_id"]: self.set_price_count(price_id))
+
+            button_layout.addWidget(increase_button)
+            button_layout.addWidget(decrease_button)
+            button_layout.addWidget(set_button)
+
+            button_widget = QWidget()
+            button_widget.setLayout(button_layout)
+
+            self.price_table.setItem(row, 0, description_item)
+            self.price_table.setItem(row, 1, price_item)
+            self.price_table.setItem(row, 2, count_item)
+            self.price_table.setCellWidget(row, 3, button_widget)
+            self.price_table.setItem(row, 4, total_item)
 
     # Update's series label color.
     def series_label_color(self):
@@ -269,6 +317,8 @@ class DefaultPage(QWidget):
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
 
     # Toggles worker's status.
     def toggle_worker_status(self, worker_id):
@@ -286,4 +336,12 @@ class DefaultPage(QWidget):
             database.add_one(position, series_id)
         elif delta == -1:
             database.remove_one(position, series_id)
+        self.update_page()
+
+    # Controls the modified price value.
+    def modify_price_value(self, price_id, delta):
+        if delta == 1:
+            database.add_one_price(price_id)
+        elif delta == -1:
+            database.remove_one_price(price_id)
         self.update_page()

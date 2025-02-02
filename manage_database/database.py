@@ -7,6 +7,7 @@ class DatabaseOperations:
         self.cursor = self.conn.cursor()
         self.conn.execute("PRAGMA foreign_keys = ON;")  # Ensure foreign keys are enforced.
         self.create_tables()
+        self.initialize_first_run()
 
     # Creates the tables if they don't exist.
     def create_tables(self):
@@ -193,6 +194,28 @@ class DatabaseOperations:
  
 
     # --- Manage prices: ---
+    # Add 1 to a price's count.
+    def add_one_price(self, price_id):
+        query = "UPDATE prices SET count = count + 1 WHERE price_id = ?"
+        self.cursor.execute(query, (price_id,))
+        self.conn.commit()
+
+    # Remove 1 from a price's count.
+    def remove_one_price(self, price_id):
+        # Check current count
+        self.cursor.execute("SELECT count FROM prices WHERE price_id = ?", (price_id,))
+        current_count = self.cursor.fetchone()[0]
+        if current_count > 0:
+            query = "UPDATE prices SET count = count - 1 WHERE price_id = ?"
+            self.cursor.execute(query, (price_id,))
+            self.conn.commit()
+        
+    # Set the count of a price.
+    def set_price_count(self, count, price_id):
+        query = "UPDATE prices SET count = ? WHERE price_id = ?"
+        self.cursor.execute(query, (count, price_id))
+        self.conn.commit()
+
     # Update the price for a price in a given series_id.
     def set_price(self, price, price_id):
         query = "UPDATE prices SET price = ? WHERE price_id = ?"
@@ -205,6 +228,12 @@ class DatabaseOperations:
         self.cursor.execute(query, (description, price, series_id))
         self.conn.commit()
 
+    # Delete a price from the series in a given series_id.
+    def delete_price(self, price_id):
+        query = "DELETE FROM prices WHERE price_id = ?"
+        self.cursor.execute(query, (price_id,))
+        self.conn.commit()
+
 
 
     # --- Getters: ---
@@ -215,8 +244,8 @@ class DatabaseOperations:
 
     # Get all prices for a given series index.
     def get_prices(self, series_id):
-        self.cursor.execute("SELECT * FROM prices WHERE series_id = ?", (series_id,))
-        return {row[0]: {"description": row[1], "price": row[2], "count": row[3]} for row in self.cursor.fetchall()}
+        self.cursor.execute("SELECT price_id, description, price, count FROM prices WHERE series_id = ?", (series_id,))
+        return {row[0]: {"price_id": row[0], "description": row[1], "price": row[2], "count": row[3]} for row in self.cursor.fetchall()}
 
    # Get all coefficients for a given series_id.
     def get_coefficients(self, series_id):
@@ -227,8 +256,6 @@ class DatabaseOperations:
     def get_positions(self, series_id):
         self.cursor.execute("SELECT position, value FROM positions WHERE series_id = ?", (series_id,))
         return {row[0]: row[1] for row in self.cursor.fetchall()}
-
-
 
     # Function which will create the first 18 already pre-defined prices.
     def add_predefined_prices(self):
@@ -262,6 +289,15 @@ class DatabaseOperations:
             ''', (price[0], price[1], series_id))
 
         self.conn.commit()
+
+    # Function which will initialize the database with the first series and predefined prices.
+    def initialize_first_run(self):
+        # Check if the series table is empty
+        self.cursor.execute('SELECT COUNT(*) FROM series')
+        if self.cursor.fetchone()[0] == 0:
+            # No series exist, so this is the first run
+            self.create_series()
+            self.add_predefined_prices()
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()

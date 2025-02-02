@@ -1,5 +1,5 @@
-manage_db/__pycache__/
-manage_db/db.sqlite3
-tetim_programma.xlsx
-tetim_programma.py
-test.py
+manage_database/__pycache__/
+dialogs/__pycache__/
+gui/__pycache__/
+
+manage_database/database.sqlite3
