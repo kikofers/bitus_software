@@ -68,7 +68,7 @@ class DatabaseOperations:
 
         self.conn.commit()
 
-    # --- Manage series: ---
+# ------ Manage series: ------
     # Create a new series.
     def create_series(self):
         # Insert into the series table
@@ -90,14 +90,6 @@ class DatabaseOperations:
             INSERT INTO coefficients (coefficient_id, value, series_id)
             SELECT coefficient_id, value, ? FROM coefficients WHERE series_id = ?
         ''', (series_id, previous_series_id))
-
-        # If no previous series exists, initialize coefficients with default value 0
-        if self.cursor.rowcount == 0:  # No rows were copied
-            for coefficient_id in range(1, 12):  # Coefficients 1 through 11
-                self.cursor.execute('''
-                    INSERT INTO coefficients (coefficient_id, value, series_id)
-                    VALUES (?, 0, ?)
-                ''', (coefficient_id, series_id))
 
         # Copy workers from the previous series
         previous_series_id = series_id - 1
@@ -127,7 +119,7 @@ class DatabaseOperations:
 
 
 
-    # --- Manage workers: ---
+# ------ Manage workers: ------
     # Add a worker to the worker table.
     def add_series_worker(self, series_id, name, surname, efficiency):
         query = "INSERT INTO workers (series_id, name, surname, efficiency) VALUES (?, ?, ?, ?)"
@@ -153,7 +145,7 @@ class DatabaseOperations:
 
 
 
-    # --- Manage positions: ---
+# ------ Manage positions: ------
     # Add 1 to a position's value.
     def add_one(self, position, series_id):
         query = "UPDATE positions SET value = value + 1 WHERE position = ? AND series_id = ?"
@@ -184,7 +176,7 @@ class DatabaseOperations:
 
 
 
-    # --- Manage coefficients: ---
+# ------ Manage coefficients: ------
     # Set the value of a coefficient.
     def set_coefficient(self, coefficient_id, series_id, value):
         query = "UPDATE coefficients SET value = ? WHERE coefficient_id = ? AND series_id = ?"
@@ -193,7 +185,7 @@ class DatabaseOperations:
 
  
 
-    # --- Manage prices: ---
+# ------ Manage prices: ------
     # Add 1 to a price's count.
     def add_one_price(self, price_id):
         query = "UPDATE prices SET count = count + 1 WHERE price_id = ?"
@@ -234,9 +226,14 @@ class DatabaseOperations:
         self.cursor.execute(query, (price_id,))
         self.conn.commit()
 
+    # Resets the count of all prices in a given series_id.
+    def reset_prices(self, series_id):
+        query = "UPDATE prices SET count = 0 WHERE series_id = ?"
+        self.cursor.execute(query, (series_id,))
+        self.conn.commit()
 
 
-    # --- Getters: ---
+# ------ Getters: ------
     # Get all workers for a given series index.
     def get_series_workers(self, series_id):
         self.cursor.execute("SELECT worker_id, name, surname, efficiency, working FROM workers WHERE series_id = ?", (series_id,))
@@ -257,6 +254,19 @@ class DatabaseOperations:
         self.cursor.execute("SELECT position, value FROM positions WHERE series_id = ?", (series_id,))
         return {row[0]: row[1] for row in self.cursor.fetchall()}
 
+    # Function, which will return the sum of all position values in the series.
+    def get_sum_positions(self, series_id):
+        self.cursor.execute("SELECT SUM(value) FROM positions WHERE series_id = ?", (series_id,))
+        return self.cursor.fetchone()[0]
+    
+    # Function, which will return the sum of all prices in the series.
+    def get_sum_prices(self, series_id):
+        self.cursor.execute("SELECT SUM(price * count) FROM prices WHERE series_id = ?", (series_id,))
+        return self.cursor.fetchone()[0]
+
+
+
+# ------ Other functions: ------
     # Function which will create the first 18 already pre-defined prices.
     def add_predefined_prices(self):
         prices = [
@@ -290,6 +300,31 @@ class DatabaseOperations:
 
         self.conn.commit()
 
+    # Adds pre-defined coefficients.
+    def add_predefined_coefficients(self):
+        coefficients = [
+            (1, 0.66),
+            (2, 1.33),
+            (3, 0.5),
+            (4, 0.33),
+            (5, 1.33),
+            (6, 1.0),
+            (7, 0.8),
+            (8, 2.0),
+            (9, 0.66),
+            (10, 0.1),
+            (11, 0.1)
+        ]
+
+        series_id = self.get_last_series_id()
+
+        for coefficient in coefficients:
+            self.cursor.execute('''
+                INSERT INTO coefficients (coefficient_id, value, series_id) VALUES (?, ?, ?)
+            ''', (coefficient[0], coefficient[1], series_id))
+
+        self.conn.commit()
+
     # Function which will initialize the database with the first series and predefined prices.
     def initialize_first_run(self):
         # Check if the series table is empty
@@ -298,6 +333,7 @@ class DatabaseOperations:
             # No series exist, so this is the first run
             self.create_series()
             self.add_predefined_prices()
+            self.add_predefined_coefficients()
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()

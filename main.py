@@ -2,45 +2,6 @@ from gui.window import MainWindow
 from PyQt5.QtWidgets import QApplication
 import sys
 
-""" Funkcijas, kuras aprēķina darba laiku un izpildes laiku.
-# Aprēķina cik sērijā ir daudz darba, mērot stundās.
-def aprekinat_darba_laiku():
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-        total_time = 0
-        for pozicija, info in current_series["poziciju_saraksts"].items():
-            total_time += info["laiks"] * info["gabali"]
-        return total_time
-    else:
-        return None
-
-# Aprēķina cik ilgi aizņems laiks, lai izpildītu sēriju, ņemot vērā tikai tos darbiniekus, kuri ir iekļauti.
-def aprekinat_izpildes_laiku():
-    if aktiva_serija is not None:
-        current_series = seriju_saraksts[aktiva_serija - 1]
-
-        kopejais_laiks = aprekinat_darba_laiku()
-        kopeja_efektivitate = 0
-
-        for darbinieks in current_series["darbinieku_saraksts"].values():
-            if darbinieks["iekļauts"]:
-                kopeja_efektivitate += darbinieks["efektivitāte"]
-        
-        kopejais_laiks += kopejais_laiks * krasotavas_kludas_koeficients
-        kopejais_laiks += kopejais_laiks * kvalitates_parbaudes_koeficients
-        kopejais_laiks += arejie_faktori
-
-        # print("Kopējā darbinieku efektivitāte:", round(kopeja_efektivitate, 1))
-
-        kopejais_laiks /= kopeja_efektivitate
-        # print(f"Sēriju izpildes laiks: {round(kopejais_laiks, 1)}h.")
-        # print(f"Vajadzēs {round(kopejais_laiks / 8, 1)}d.")
-        return kopejais_laiks
-
-    else:
-        return None
-"""
-
 """ UI prasības:
 1. Tā lapiņa arī parādas blakus uz ekrāna.
 2. Diagrammā:
@@ -52,10 +13,6 @@ def aprekinat_izpildes_laiku():
 
 Apkopojumā:
  * vienību skaits,
- * loga vērtņu skaits (pats savadīs),
- * durvju vērtņu skaits (pats savadīs),
- * rāmju savienošana (pats savadīs),
- * durvju kopējais skaits (pats savadīs),
  * visus tos rezultātus,
  * brīva vieta komentāriem,
 """

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWid
 from PyQt5.QtCore import Qt
 
 from dialogs.add_worker import AddWorkerDialog
+from dialogs.confirmation import ConfirmationDialog
 from dialogs.delete_worker import DeleteWorkerDialog
 from dialogs.worker_efficiency import EditWorkerEfficiencyDialog
 
@@ -10,7 +11,6 @@ from manage_database.database import database
 class DefaultPage(QWidget):
     def __init__(self, main_window):
         super().__init__()
-
         self.main_window = main_window
 
         main_layout = QVBoxLayout()
@@ -121,14 +121,19 @@ class DefaultPage(QWidget):
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
         self.settings_button = QPushButton("Koeficientu Iestatījumi")
-        #self.settings_button.clicked.connect(self.settings)
+        self.settings_button.clicked.connect(self.go_to_settings)
         self.settings_button.setObjectName("settingsButton")
         lower_layout_buttons.addWidget(self.settings_button)
 
-        self.reset_positions_button = QPushButton("Atjaunot Pozīcijas")
-        self.reset_positions_button.clicked.connect(self.reset_positions)
+        self.reset_positions_button = QPushButton("Notīrīt Pozīcijas")
+        self.reset_positions_button.clicked.connect(self.confirm_reset_positions)
         self.reset_positions_button.setObjectName("restartButton")
         lower_layout_buttons.addWidget(self.reset_positions_button)
+
+        self.reset_prices_button = QPushButton("Notīrīt Cenas")
+        self.reset_prices_button.clicked.connect(self.confirm_reset_prices)
+        self.reset_prices_button.setObjectName("restartButton")
+        lower_layout_buttons.addWidget(self.reset_prices_button)
 
         lower_layout.addLayout(lower_layout_buttons)
 
@@ -140,7 +145,7 @@ class DefaultPage(QWidget):
 
 
 
-    # --- Dialog Functions: ---
+#------ Dialog Functions: ------
     # Add worker dialog.
     def add_worker(self):
         dialog = AddWorkerDialog(self)
@@ -170,19 +175,37 @@ class DefaultPage(QWidget):
             database.set_price_count(new_value, price_id)
             self.update_page()
 
+    # Confirm the position reset.
+    def confirm_reset_positions(self):
+        message = "Vai tiešām iestatīt visas pozīciju vērtības uz 0?      "
+        dialog = ConfirmationDialog(self, message)
+        if dialog.exec_():
+            self.reset_positions()
 
-    # --- Update Functions: ---
-    # The main function called when it's necessary to update the page's contents.
+    # Confirm price reset.
+    def confirm_reset_prices(self):
+        message = "Vai tiešām iestatīt visas cenu gabalu vērtības uz 0?      "
+        dialog = ConfirmationDialog(self, message)
+        if dialog.exec_():
+            self.reset_prices()
+
+
+
+#------ Update Functions: ------
+    # The main function called when it's necessary to update all contents.
     def update_page(self):
         self.series_label_color()
         self.navigation_button_color()
         self.populate_position_table()
         self.populate_worker_table()
         self.populate_price_table()
+        self.populate_results_table()
 
     # Updates the position table.
     def populate_position_table(self):
-        positions = database.get_positions(self.main_window.series_index)
+        series_id = self.main_window.series_index
+        
+        positions = database.get_positions(series_id)
         if positions is None:
             return
 
@@ -266,7 +289,7 @@ class DefaultPage(QWidget):
             self.price_table.setCellWidget(row, 3, button_widget)
             self.price_table.setItem(row, 4, total_item)
 
-    # Update's series label color.
+    # Updates series label color.
     def series_label_color(self):
         colors = ["black", "blue", "green", "red"]
         selected_color = colors[(self.main_window.series_index - 1) % 4] if self.main_window.series_index else "orange"
@@ -274,9 +297,70 @@ class DefaultPage(QWidget):
         self.series_label.setStyleSheet(f"color: {selected_color};")
         self.series_label.show()
 
+    # Updates the results table.
+    def populate_results_table(self):
+        positions = database.get_positions(self.main_window.series_index)
+        coefficients = database.get_coefficients(self.main_window.series_index)
+        workers = database.get_series_workers(self.main_window.series_index)
+
+        if not workers:
+            return
+
+        position_sum = database.get_sum_positions(self.main_window.series_index)
+        price_sum = database.get_sum_prices(self.main_window.series_index)
+        
+        position_time = 0.0
+        for position in positions:
+            position_time += positions[position] * coefficients[position]
+
+        total_efficiency = 0.0
+        for worker_id, worker in workers.items():
+            if worker["working"]:
+                total_efficiency += worker["efficiency"]
+
+        if total_efficiency == 0:
+            self.results_table.clearContents()
+            self.results_table.setRowCount(1)
+            efficiency_time_item = QTableWidgetItem("UZMANĪBU!")
+            efficiency_time_count = QTableWidgetItem("Neviens darbinieks nestrādā.")
+            self.results_table.setItem(0, 0, efficiency_time_item)
+            self.results_table.setItem(0, 1, efficiency_time_count)
+            return
+
+        efficiency_time = position_time / total_efficiency
+        series_time = efficiency_time + efficiency_time * coefficients[10] + efficiency_time * coefficients[11]
+        
+        self.results_table.setRowCount(6)
+
+        position_sum_item = QTableWidgetItem("Kopējais pozīciju gabalu skaits:")
+        position_sum_count = QTableWidgetItem(str(position_sum))
+        price_sum_item = QTableWidgetItem("Kopējā vērtība sērijai:")
+        price_sum_count = QTableWidgetItem(f"{price_sum:.2f}€")
+        position_time_item = QTableWidgetItem("Kopējais darba laiks (neņemot vērā efektivitāti):")
+        position_time_count = QTableWidgetItem(self.to_hours_and_minutes(position_time))
+        efficiency_time_item = QTableWidgetItem("Sērijas izpildes laiks (ņemot vērā efektivitāti):")
+        efficiency_time_count = QTableWidgetItem(self.to_hours_and_minutes(efficiency_time))
+        series_time_item_hours = QTableWidgetItem("Reālais sērijas izpildes laiks (ņemot vērā visus koeficientus):")
+        series_time_count_hours = QTableWidgetItem(self.to_hours_and_minutes(series_time))
+        series_time_item_days = QTableWidgetItem("Reālais sērijas izpildes laiks (dienās):")
+        series_time_count_days = QTableWidgetItem(f"{round(series_time / 8, 1)}d")
+
+        self.results_table.setItem(0, 0, position_sum_item)
+        self.results_table.setItem(0, 1, position_sum_count)
+        self.results_table.setItem(1, 0, price_sum_item)
+        self.results_table.setItem(1, 1, price_sum_count)
+        self.results_table.setItem(2, 0, position_time_item)
+        self.results_table.setItem(2, 1, position_time_count)
+        self.results_table.setItem(3, 0, efficiency_time_item)
+        self.results_table.setItem(3, 1, efficiency_time_count)
+        self.results_table.setItem(4, 0, series_time_item_hours)
+        self.results_table.setItem(4, 1, series_time_count_hours)
+        self.results_table.setItem(5, 0, series_time_item_days)
+        self.results_table.setItem(5, 1, series_time_count_days)
 
 
-    # --- Navigation Buttons: ---
+
+#------ Navigation Buttons: ------
     # Create a new series.
     def create_new_series(self):
         database.create_series()
@@ -308,7 +392,11 @@ class DefaultPage(QWidget):
 
 
 
-    # --- Other Functions: ---
+#------ Other Functions: ------
+    # Goes to the settings page.
+    def go_to_settings(self):
+        self.main_window.stack.setCurrentWidget(self.main_window.settings_page)
+
     # Helper function to create the two tables and keep the code clean.
     def create_table(self, table, headers):
         table.setColumnCount(len(headers))
@@ -323,11 +411,16 @@ class DefaultPage(QWidget):
     # Toggles worker's status.
     def toggle_worker_status(self, worker_id):
         database.toggle_working(worker_id)
-        self.populate_worker_table()  # Refresh the table
+        self.update_page()  # Refresh the table
 
     # Resetts the values for position table.
     def reset_positions(self):
         database.reset_positions(self.main_window.series_index)
+        self.update_page()
+
+    # Resetts the values for price table.
+    def reset_prices(self):
+        database.reset_prices(self.main_window.series_index)
         self.update_page()
 
     # Controls the modified position value.
@@ -345,3 +438,9 @@ class DefaultPage(QWidget):
         elif delta == -1:
             database.remove_one_price(price_id)
         self.update_page()
+    
+    # Returns the hours and minutes in a string format.
+    def to_hours_and_minutes(self, hours):
+        whole_hours = int(hours)
+        minutes = int((hours - whole_hours) * 60)
+        return f"{whole_hours}h {minutes}m"
