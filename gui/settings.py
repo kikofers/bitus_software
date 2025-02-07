@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
 
 from manage_database.database import database
@@ -10,9 +10,12 @@ class SettingsPage(QWidget):
         self.main_window = main_window
 
         main_layout = QVBoxLayout()
+
         label = QLabel("Koeficientu Pārvaldīšana")
         label.setObjectName("mainLabel")
         main_layout.addWidget(label, alignment=Qt.AlignCenter)
+
+
 
         upper_button_layout = QHBoxLayout()
         
@@ -39,11 +42,42 @@ class SettingsPage(QWidget):
 
 
 
+        coefficient_layout = QHBoxLayout()
+
+        coefficient_table_layout = QVBoxLayout()
+
+        self.table_label = QLabel("Sērijas Koeficientu Tabula")
+        self.table_label.setObjectName("secondaryLabel")
+        self.table_label.setAlignment(Qt.AlignCenter)
+        coefficient_table_layout.addWidget(self.table_label, alignment=Qt.AlignTop)
+
+        self.coefficient_table = QTableWidget()
+        self.create_table(self.coefficient_table, ["Koeficients", "Vērtība", "Mainīt"])
+        coefficient_table_layout.addWidget(self.coefficient_table)
+
+        coefficient_layout.addLayout(coefficient_table_layout)
+        coefficient_layout.addStretch()
+
+
+        
+        self.default_button = QPushButton("Atpakaļ uz Sērijas Pārvaldīšanu")
+        self.default_button.clicked.connect(self.go_to_default)
+        self.default_button.setObjectName("defaultButton")
+        coefficient_layout.addWidget(self.default_button)
+
+
+        main_layout.addLayout(coefficient_layout)
+        self.setLayout(main_layout)
+
+        self.update_page()
+
+
 
 #------ Update Functions: ------
     def update_page(self):
         self.series_label_color()
-        self.update_table()
+        self.navigation_button_color()
+        self.populate_coefficient_table()
 
     # Updates series label color.
     def series_label_color(self):
@@ -52,6 +86,40 @@ class SettingsPage(QWidget):
         self.series_label.setText(f"Sērija {self.main_window.series_index if self.main_window.series_index else 'Nav'}")
         self.series_label.setStyleSheet(f"color: {selected_color};")
         self.series_label.show()
+
+    # Updates coefficient table.
+    def populate_coefficient_table(self):
+        series_id = self.main_window.series_index
+
+        coefficients = database.get_coefficients(series_id)
+        if coefficients is None:
+            return
+        
+        self.coefficient_table.setRowCount(11)
+        
+        for row, coefficient in enumerate(coefficients.values()):
+            coefficient_item = QTableWidgetItem(coefficient["description"])
+            value_item = QTableWidgetItem(str(coefficient["value"]))
+
+            set_button = QPushButton("Mainīt")
+            set_button.clicked.connect(lambda _, co=coefficient["coefficient_id"]: self.set_coefficient_value(co, series_id))
+            button_layout = QHBoxLayout()
+            button_layout.addWidget(set_button)
+            button_widget = QWidget()
+            button_widget.setLayout(button_layout)
+
+            self.coefficient_table.setItem(row, 0, coefficient_item)
+            self.coefficient_table.setItem(row, 1, value_item)
+            self.coefficient_table.setCellWidget(row, 2, button_widget)
+
+
+
+#------ Dialogs: ------
+    def set_coefficient_value(self, coefficient, series_id):
+        new_value, ok = QInputDialog.getDouble(self, "Mainīt vērtību", f"Iestatīt jauno koeficienta vērtību:", decimals=2, min=0)
+        if ok:
+            database.set_coefficient(coefficient, series_id, new_value)
+            self.update_page()
 
 
 
@@ -78,3 +146,21 @@ class SettingsPage(QWidget):
         self.previous_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index > 1)
         self.next_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index < database.get_last_series_id())
         self.latest_series_button.setEnabled(self.main_window.series_index and self.main_window.series_index != database.get_last_series_id())
+
+
+
+#------ Other Functions: ------
+    # Helper function to create the two tables and keep the code clean.
+    def create_table(self, table, headers):
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+
+    def go_to_default(self):
+        self.main_window.default_page.update_page()
+        self.main_window.stack.setCurrentWidget(self.main_window.default_page)

@@ -34,6 +34,7 @@ class DatabaseOperations:
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS coefficients (
                 coefficient_id INTEGER NOT NULL,
+                description TEXT NOT NULL,
                 value INTEGER DEFAULT 0,
                 series_id INTEGER NOT NULL,
                 PRIMARY KEY (coefficient_id, series_id),
@@ -68,6 +69,8 @@ class DatabaseOperations:
 
         self.conn.commit()
 
+
+
 # ------ Manage series: ------
     # Create a new series.
     def create_series(self):
@@ -87,8 +90,8 @@ class DatabaseOperations:
         # Copy coefficients from the previous series (if exists)
         previous_series_id = series_id - 1
         self.cursor.execute('''
-            INSERT INTO coefficients (coefficient_id, value, series_id)
-            SELECT coefficient_id, value, ? FROM coefficients WHERE series_id = ?
+            INSERT INTO coefficients (coefficient_id, description, value, series_id)
+            SELECT coefficient_id, description, value, ? FROM coefficients WHERE series_id = ?
         ''', (series_id, previous_series_id))
 
         # Copy workers from the previous series
@@ -246,8 +249,8 @@ class DatabaseOperations:
 
    # Get all coefficients for a given series_id.
     def get_coefficients(self, series_id):
-        self.cursor.execute("SELECT coefficient_id, value FROM coefficients WHERE series_id = ?", (series_id,))
-        return {row[0]: row[1] for row in self.cursor.fetchall()}
+        self.cursor.execute("SELECT coefficient_id, description, value FROM coefficients WHERE series_id = ?", (series_id,))
+        return {row[0]: {"coefficient_id": row[0], "description": row[1], "value": row[2]} for row in self.cursor.fetchall()}
 
     # Get all positions for a given series_id.
     def get_positions(self, series_id):
@@ -303,25 +306,25 @@ class DatabaseOperations:
     # Adds pre-defined coefficients.
     def add_predefined_coefficients(self):
         coefficients = [
-            (1, 0.66),
-            (2, 1.33),
-            (3, 0.5),
-            (4, 0.33),
-            (5, 1.33),
-            (6, 1.0),
-            (7, 0.8),
-            (8, 2.0),
-            (9, 0.66),
-            (10, 0.1),
-            (11, 0.1)
+            (1, "1. pozīcija", 0.66),
+            (2, "2. pozīcija", 1.33),
+            (3, "3. pozīcija", 0.5),
+            (4, "4. pozīcija", 0.33),
+            (5, "5. pozīcija", 1.33),
+            (6, "6. pozīcija", 1.0),
+            (7, "7. pozīcija", 0.8),
+            (8, "8. pozīcija", 2.0),
+            (9, "9. pozīcija", 0.66),
+            (10, "Krāsotavas kļūda", 0.1),
+            (11, "Kvalitātes pārbaude", 0.1)
         ]
 
         series_id = self.get_last_series_id()
 
         for coefficient in coefficients:
             self.cursor.execute('''
-                INSERT INTO coefficients (coefficient_id, value, series_id) VALUES (?, ?, ?)
-            ''', (coefficient[0], coefficient[1], series_id))
+                INSERT INTO coefficients (coefficient_id, description, value, series_id) VALUES (?, ?, ?, ?)
+            ''', (coefficient[0], coefficient[1], coefficient[2], series_id))
 
         self.conn.commit()
 

@@ -209,7 +209,7 @@ class DefaultPage(QWidget):
         if positions is None:
             return
 
-        self.position_table.setRowCount(len(positions))
+        self.position_table.setRowCount(9)
 
         for row, (position, count) in enumerate(positions.items()):
             position_item = QTableWidgetItem(str(position))
@@ -311,7 +311,9 @@ class DefaultPage(QWidget):
         
         position_time = 0.0
         for position in positions:
-            position_time += positions[position] * coefficients[position]
+            coefficient_id = position  # Assuming coefficient_id starts from 0 and matches position - 1
+            if coefficient_id in coefficients:
+                position_time += positions[position] * coefficients[coefficient_id]["value"]
 
         total_efficiency = 0.0
         for worker_id, worker in workers.items():
@@ -328,7 +330,7 @@ class DefaultPage(QWidget):
             return
 
         efficiency_time = position_time / total_efficiency
-        series_time = efficiency_time + efficiency_time * coefficients[10] + efficiency_time * coefficients[11]
+        series_time = efficiency_time + efficiency_time * coefficients[10]["value"] + efficiency_time * coefficients[11]["value"]
         
         self.results_table.setRowCount(6)
 
@@ -395,6 +397,7 @@ class DefaultPage(QWidget):
 #------ Other Functions: ------
     # Goes to the settings page.
     def go_to_settings(self):
+        self.main_window.settings_page.update_page()
         self.main_window.stack.setCurrentWidget(self.main_window.settings_page)
 
     # Helper function to create the two tables and keep the code clean.
