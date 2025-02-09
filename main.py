@@ -2,8 +2,7 @@ from gui.window import MainWindow
 from PyQt5.QtWidgets import QApplication
 import sys
 
-""" UI prasības:
-
+"""
 1. Diagrammā:
   * Sarkanā krāsā [2, 5, 6, 8.];
   * Dzeltenā krāsā [1, 7, 9.];
@@ -14,7 +13,6 @@ import sys
    * vienību skaits;
    * visus tos rezultātus;
    * brīva vieta komentāriem.
-
 """
 
 if __name__ == "__main__":
