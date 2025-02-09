@@ -23,7 +23,7 @@ class DefaultPage(QWidget):
         upper_button_layout = QHBoxLayout()
         
         self.series_label = QLabel()
-        self.series_label.setObjectName("mainLabel")
+        self.series_label.setObjectName("seriesLabel")
         upper_button_layout.addWidget(self.series_label)
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
@@ -115,12 +115,12 @@ class DefaultPage(QWidget):
         self.remove_worker_button.setObjectName("removeButton")
         lower_layout_buttons.addWidget(self.remove_worker_button, alignment=Qt.AlignTop)
 
-        self.modify_worker_efficiency_button = QPushButton("Mainīt Darbinieka Efektivitāti")
+        self.modify_worker_efficiency_button = QPushButton("Mainīt Efektivitāti")
         self.modify_worker_efficiency_button.clicked.connect(self.modify_worker_efficiency)
         self.modify_worker_efficiency_button.setObjectName("modifyButton")
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
-        self.results_button = QPushButton("Printēt Sērijas Datus")
+        self.results_button = QPushButton("Sērijas Diagramma")
         self.results_button.clicked.connect(self.go_to_print)
         self.results_button.setObjectName("printButton")
         lower_layout_buttons.addWidget(self.results_button)
@@ -222,16 +222,25 @@ class DefaultPage(QWidget):
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+1")
+            increase_button.setFixedSize(60, 35)
             decrease_button = QPushButton("-1")
+            decrease_button.setFixedSize(60, 35)
             set_button = QPushButton("Ievadīt")
+            set_button.setFixedSize(60, 35)
 
             increase_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, 1))
             decrease_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, -1))
             set_button.clicked.connect(lambda _, pos=position: self.set_position_value(pos, series_id))
 
+            increase_button.setObjectName("smallButton")
+            decrease_button.setObjectName("smallButton")
+            set_button.setObjectName("smallButton")
+
             button_layout.addWidget(increase_button)
             button_layout.addWidget(decrease_button)
             button_layout.addWidget(set_button)
+            button_layout.setAlignment(Qt.AlignCenter)
+            button_layout.setContentsMargins(0, 0, 0, 0)
 
             button_widget = QWidget()
             button_widget.setLayout(button_layout)
@@ -280,6 +289,10 @@ class DefaultPage(QWidget):
             increase_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, 1))
             decrease_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, -1))
             set_button.clicked.connect(lambda _, price_id=price["price_id"]: self.set_price_count(price_id))
+
+            increase_button.setObjectName("smallButton")
+            decrease_button.setObjectName("smallButton")
+            set_button.setObjectName("smallButton")
 
             button_layout.addWidget(increase_button)
             button_layout.addWidget(decrease_button)

@@ -45,7 +45,7 @@ class Diagram(FigureCanvas):
         self.ax.set_xticklabels(labels, rotation=45, ha="right")
 
         # Adjust layout to fit all elements
-        self.fig.tight_layout(rect=[0, 0, 1, 0.95])
+        self.fig.tight_layout(rect=[0, 0, 1, 0.9])
         self.draw()
 
     """ Saves the chart as a picture in a folder.

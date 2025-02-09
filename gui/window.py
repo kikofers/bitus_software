@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QStackedWidget
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget
+from PyQt5.QtGui import QFontDatabase
 from PyQt5.QtCore import Qt
 
 from gui.default import DefaultPage
@@ -30,7 +31,21 @@ class MainWindow(QMainWindow):
         self.apply_stylesheet()
 
     def apply_stylesheet(self):
-        with open('styles/styles.qss', 'r', encoding='utf-8') as file:
+        # Load all necessary font variants
+        font_paths = [
+            "styles/fonts/Roboto-Regular.ttf",
+            "styles/fonts/Roboto-Italic.ttf",
+            "styles/fonts/Roboto-Bold.ttf",
+            "styles/fonts/Roboto-BoldItalic.ttf",
+            "styles/fonts/Roboto-Black.ttf"
+        ]
+
+        for font_path in font_paths:
+            font_id = QFontDatabase.addApplicationFont(font_path)
+            if font_id == -1:
+                print(f"Failed to load font: {font_path}")
+
+        with open('styles/styles.qss', 'r') as file:
             self.setStyleSheet(file.read())
 
     # Always displays the window as full-screen.

@@ -1,134 +1,134 @@
-/* FONT LOADING: */
-@font-face {
-    font-family: 'Roboto';
-    src: url('styles\fonts\Roboto-Regular.ttf')
-}
-@font-face {
-    font-family: 'Roboto Italic';
-    src: url('styles\fonts\Roboto-Italic.ttf')
-}
-@font-face {
-    font-family: 'Roboto Bold';
-    src: url('styles\fonts\Roboto-Bold.ttf')
-}
-@font-face {
-    font-family: 'Roboto Bold Italic';
-    src: url('styles\fonts\Roboto-BoldItalic.ttf')
-}
-
-
-
 /* LABELS: */
+QLabel {
+    font-family: 'Roboto';
+    font-size: 24px;
+    color: #000000;
+}
 QLabel#mainLabel {
-    font-family: 'Roboto Bold';
+    font-weight: bold;
     font-size: 24px;
     color: #000000;
 }
 QLabel#secondaryLabel {
-    font-family: 'Roboto';
+    font-weight: normal;
     font-size: 18px;
     color: #000000;
 }
-
-
+QLabel#seriesLabel {
+    font-weight: 900;
+    font-size: 36px;
+    color: #000000;
+}
 
 /* NAVIGATION BUTTONS: */
-QPushButton#navButton {
-    font-family: 'Roboto Bold';
+QPushButton {
+    font-family: 'Roboto';
+    font-weight: bold;
     font-size: 18px;
-    color: #000000;
-    background-color: #f0f0f0;
-    border: 2px solid #d0d0d0;
-    border-radius: 4px;
-    height: 30px;
+    height: 35px;
+    border-radius: 1px;
+}
+QPushButton#navButton {
+    color: #ffffff;
+    background-color: #4681f4;
+    border: 3px solid #265dcb;
 }
 QPushButton#navButton:hover {
-    font-family: 'Roboto Bold';
-    font-size: 18px;
-    color: #ffffff;
-    background-color: #0300cf;
-    border: 2px solid rgb(42, 0, 120);
-    border-radius: 4px;
-    height: 30px;
+    background-color: #1d54c3;
+    border: 3px solid #1444a3;
 }
 QPushButton#navButton:disabled {
-    font-family: 'Roboto Bold';
-    font-size: 18px;
     color: #898989;
     background-color: #ffffff;
-    border: 2px solid #e2e2e2;
-    border-radius: 4px;
-    height: 30px;
+    border: 3px solid #e2e2e2;
 }
 QPushButton#newSeriesButton {
-    font-family: 'Roboto Bold';
-    font-size: 18px;
-    color: #000000;
-    background-color: #f0f0f0;
-    border: 2px solid #d0d0d0;
-    border-radius: 4px;
-    height: 30px;
+    color: #ffffff;
+    background-color: #33b249;
+    border: 3px solid #1a872c;
 }
 QPushButton#newSeriesButton:hover {
-    font-family: 'Roboto Bold';
-    font-size: 18px;
-    color: #ffffff;
-    background-color: #03aa00;
-    border: 2px solid #026e00;
-    border-radius: 4px;
-    height: 30px;
+    background-color: #199d2f;
+    border: 3px solid #0d771f;
 }
 
-
-
 /* OTHER BUTTONS: */
-addButton
-
-removeButton
-
-modifyButton
-
-restartButton
-
-settingsButton
-
-defaultButton
-
-printButton
-
-exportPDFButton
-
-
+QPushButton#addButton {
+    color: #ffffff;
+    background-color: #33b249;
+    border: 3px solid #1a872c;
+}
+QPushButton#addButton:hover {
+    background-color: #199d2f;
+    border: 3px solid #0d771f;
+}
+QPushButton#removeButton {
+    color: #ffffff;
+    background-color: #f44336;
+    border: 3px solid #c62828;
+}
+QPushButton#removeButton:hover {
+    background-color: #dc3327;
+    border: 3px solid #ab1f16;
+}
+QPushButton#modifyButton {
+    color: #ffffff;
+    background-color: #ffbd03;
+    border: 3px solid #e4a700;
+}
+QPushButton#modifyButton:hover {
+    background-color: #ce9700;
+    border: 3px solid #b38301;
+}
+QPushButton#restartButton {
+    color: #ffffff;
+    background-color: #f44336;
+    border: 3px solid #c62828;
+}
+QPushButton#restartButton:hover {
+    background-color: #dc3327;
+    border: 3px solid #ab1f16;
+}
+QPushButton#settingsButton {
+    color: #ffffff;
+    background-color: #4681f4;
+    border: 3px solid #265dcb;
+}
+QPushButton#settingsButton:hover {
+    background-color: #1d54c3;
+    border: 3px solid #1444a3;
+}
+QPushButton#defaultButton {
+    color: #ffffff;
+    background-color: #4681f4;
+    border: 3px solid #265dcb;
+}
+QPushButton#defaultButton:hover {
+    background-color: #1d54c3;
+    border: 3px solid #1444a3;
+}
+QPushButton#printButton {
+    color: #ffffff;
+    background-color: #4681f4;
+    border: 3px solid #265dcb;
+}
+QPushButton#printButton:hover {
+    background-color: #1d54c3;
+    border: 3px solid #1444a3;
+}
+QPushButton#smallButton {
+    padding: 0px;
+    margin: 0px;
+    font-style: italic;
+    font-weight: normal;
+    background-color: #ebebeb;
+    border: 2px solid #d5d5d5;
+    font-size: 16px;
+}
 
 /* INPUT FIELD SETTINGS: */
 QLineEdit#customInputField {
     font-size: 18px;
     font-weight: bold;
-    height: 30px;
-}
-
-
-
-/* TABLES: */
-QTableWidget {
-    font-size: 16px;
-    font-weight: bold;
-    font-family: "Roboto"
-}
-QTableWidget::item {
-    background-color: white;
-    padding: 4px;
-}
-QTableWidget::item:alternate {
-    background-color: #f0f0f0;
-}
-QHeaderView::section {
-    font-size: 18px;
-    font-weight: bold;
-    background-color: #d3d3d3;
-    padding: 4px;
-    border: 1px solid #d0d0d0;
-}
-QTableWidget::item[quantity="0"] {
-    color: #a0a0a0;
+    height: 35px;
 }
