@@ -40,6 +40,7 @@ QPushButton#navButton {
     background-color: #f0f0f0;
     border: 2px solid #d0d0d0;
     border-radius: 4px;
+    height: 30px;
 }
 QPushButton#navButton:hover {
     font-family: 'Roboto Bold';
@@ -48,6 +49,7 @@ QPushButton#navButton:hover {
     background-color: #0300cf;
     border: 2px solid rgb(42, 0, 120);
     border-radius: 4px;
+    height: 30px;
 }
 QPushButton#navButton:disabled {
     font-family: 'Roboto Bold';
@@ -56,6 +58,7 @@ QPushButton#navButton:disabled {
     background-color: #ffffff;
     border: 2px solid #e2e2e2;
     border-radius: 4px;
+    height: 30px;
 }
 QPushButton#newSeriesButton {
     font-family: 'Roboto Bold';
@@ -64,6 +67,7 @@ QPushButton#newSeriesButton {
     background-color: #f0f0f0;
     border: 2px solid #d0d0d0;
     border-radius: 4px;
+    height: 30px;
 }
 QPushButton#newSeriesButton:hover {
     font-family: 'Roboto Bold';
@@ -72,6 +76,7 @@ QPushButton#newSeriesButton:hover {
     background-color: #03aa00;
     border: 2px solid #026e00;
     border-radius: 4px;
+    height: 30px;
 }
 
 
@@ -99,7 +104,7 @@ exportPDFButton
 QLineEdit#customInputField {
     font-size: 18px;
     font-weight: bold;
-    height: 40px;
+    height: 30px;
 }
 
 
