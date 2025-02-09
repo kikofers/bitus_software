@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 
 from gui.default import DefaultPage
 from gui.settings import SettingsPage
+from gui.print import PrintPage
 
 from manage_database.database import database
 
@@ -18,9 +19,11 @@ class MainWindow(QMainWindow):
 
         self.default_page = DefaultPage(self)
         self.settings_page = SettingsPage(self)
+        self.print_page = PrintPage(self)
 
         self.stack.addWidget(self.default_page)
         self.stack.addWidget(self.settings_page)
+        self.stack.addWidget(self.print_page)
 
         self.setCentralWidget(self.stack)
 

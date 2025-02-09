@@ -120,6 +120,11 @@ class DefaultPage(QWidget):
         self.modify_worker_efficiency_button.setObjectName("modifyButton")
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
 
+        self.results_button = QPushButton("Printēt Sērijas Datus")
+        self.results_button.clicked.connect(self.go_to_print)
+        self.results_button.setObjectName("printButton")
+        lower_layout_buttons.addWidget(self.results_button)
+
         self.settings_button = QPushButton("Koeficientu Iestatījumi")
         self.settings_button.clicked.connect(self.go_to_settings)
         self.settings_button.setObjectName("settingsButton")
@@ -395,6 +400,11 @@ class DefaultPage(QWidget):
 
 
 #------ Other Functions: ------
+    # Goes to the print page.
+    def go_to_print(self):
+        self.main_window.print_page.update_page()
+        self.main_window.stack.setCurrentWidget(self.main_window.print_page)
+
     # Goes to the settings page.
     def go_to_settings(self):
         self.main_window.settings_page.update_page()
