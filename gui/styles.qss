@@ -20,10 +20,12 @@ removeButton
 
 modifyButton
 
+restartButton
+
 settingsButton
 
 defaultButton
 
 printButton
 
-restartButton
+exportPDFButton

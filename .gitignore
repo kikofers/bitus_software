@@ -3,3 +3,5 @@ dialogs/__pycache__
 gui/__pycache__
 
 manage_database/database.sqlite3
+pictures/
+pdf/

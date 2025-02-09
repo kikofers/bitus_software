@@ -294,14 +294,6 @@ class DefaultPage(QWidget):
             self.price_table.setCellWidget(row, 3, button_widget)
             self.price_table.setItem(row, 4, total_item)
 
-    # Updates series label color.
-    def series_label_color(self):
-        colors = ["black", "blue", "green", "red"]
-        selected_color = colors[(self.main_window.series_index - 1) % 4] if self.main_window.series_index else "orange"
-        self.series_label.setText(f"Sērija {self.main_window.series_index if self.main_window.series_index else 'Nav'}")
-        self.series_label.setStyleSheet(f"color: {selected_color};")
-        self.series_label.show()
-
     # Updates the results table.
     def populate_results_table(self):
         positions = database.get_positions(self.main_window.series_index)
@@ -364,6 +356,14 @@ class DefaultPage(QWidget):
         self.results_table.setItem(4, 1, series_time_count_hours)
         self.results_table.setItem(5, 0, series_time_item_days)
         self.results_table.setItem(5, 1, series_time_count_days)
+
+    # Updates series label color.
+    def series_label_color(self):
+        colors = ["black", "blue", "green", "red"]
+        selected_color = colors[(self.main_window.series_index - 1) % 4] if self.main_window.series_index else "orange"
+        self.series_label.setText(f"Sērija {self.main_window.series_index if self.main_window.series_index else 'Nav'}")
+        self.series_label.setStyleSheet(f"color: {selected_color};")
+        self.series_label.show()
 
 
 
