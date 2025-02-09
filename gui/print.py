@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
+""" PDF Export Libraries.
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Table, TableStyle
@@ -11,6 +12,7 @@ from reportlab.lib import colors
 
 from PIL import Image
 import os
+"""
 
 from manage_database.database import database
 
@@ -46,12 +48,13 @@ class Diagram(FigureCanvas):
         self.fig.tight_layout(rect=[0, 0, 1, 0.95])
         self.draw()
 
-    # Saves the chart as a picture in a folder.
+    """ Saves the chart as a picture in a folder.
     def save_chart(self, series_index):
         # Ensure the directory exists
         os.makedirs("pictures", exist_ok=True)
         # Save the chart as a picture in the directory
         self.fig.savefig(f"pictures\sērija_{series_index}.png", dpi=300)
+    """
 
 # Displays a diagramm of the positions in the series, also shows the same results
 # found in the default page. Allows the user to print the series data.
@@ -84,7 +87,7 @@ class PrintPage(QWidget):
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
         self.latest_series_button.clicked.connect(self.latest_series)
-        self.latest_series_button.setObjectName("latestSeriesButton")
+        self.latest_series_button.setObjectName("navButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
         main_layout.addLayout(upper_button_layout)
@@ -102,23 +105,24 @@ class PrintPage(QWidget):
         self.default_button.clicked.connect(self.go_to_default)
         self.default_button.setObjectName("defaultButton")
 
+        """ PDF Export Button.
         self.export_pdf_button = QPushButton("Eksportēt PDF")
         self.export_pdf_button.clicked.connect(lambda: self.generate_pdf(self.main_window.series_index))
         self.export_pdf_button.setObjectName("exportPDFButton")
-        
+        """
+
         results_layout.addWidget(self.diagram)
         results_layout.addWidget(self.results_table)
         results_layout.addWidget(self.default_button)
         
-        main_layout.addWidget(self.export_pdf_button)
+        #main_layout.addWidget(self.export_pdf_button)
         main_layout.addLayout(results_layout)
         self.setLayout(main_layout)
 
         self.update_page()
 
 
-
-#------ PDF Functions: ------
+    """ ------ PDF Functions: ------
     def generate_pdf(self, series_index):
         # Save chart as image
         self.diagram.save_chart(series_index)
@@ -132,12 +136,12 @@ class PrintPage(QWidget):
         width, height = letter
 
         # Draw title
-        pdf.setFont("Poppins", 16)
+        pdf.setFont("Helvetica", 16)
         pdf.drawString(200, height - 50, "Sērijas Dati")
 
         # Draw chart
         chart = Image.open(chart_path)
-        pdf.drawInlineImage(chart_path, 50, height - 350, width=300, height=200)
+        pdf.drawInlineImage(chart_path, 50, height - 350, width=300, height=400)
 
         # Get table data
         data = []
@@ -163,7 +167,7 @@ class PrintPage(QWidget):
 
         # Save PDF
         pdf.save()
-
+    """
 
 
 #------ Update Functions: ------

@@ -30,7 +30,7 @@ class MainWindow(QMainWindow):
         self.apply_stylesheet()
 
     def apply_stylesheet(self):
-        with open('gui/styles.qss', 'r', encoding='utf-8') as file:
+        with open('styles/styles.qss', 'r', encoding='utf-8') as file:
             self.setStyleSheet(file.read())
 
     # Always displays the window as full-screen.

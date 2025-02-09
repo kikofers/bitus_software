@@ -38,7 +38,7 @@ class DefaultPage(QWidget):
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
         self.latest_series_button.clicked.connect(self.latest_series)
-        self.latest_series_button.setObjectName("latestSeriesButton")
+        self.latest_series_button.setObjectName("navButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
         self.new_series_button = QPushButton("Jauna sērija")
