@@ -20,7 +20,7 @@ class SettingsPage(QWidget):
         upper_button_layout = QHBoxLayout()
         
         self.series_label = QLabel()
-        self.series_label.setObjectName("mainLabel")
+        self.series_label.setObjectName("seriesLabel")
         upper_button_layout.addWidget(self.series_label)
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
@@ -38,33 +38,38 @@ class SettingsPage(QWidget):
         self.latest_series_button.setObjectName("navButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
+        self.default_button = QPushButton("Atpakaļ uz Sērijas Pārvaldīšanu")
+        self.default_button.clicked.connect(self.go_to_default)
+        self.default_button.setObjectName("defaultButton")
+        upper_button_layout.addWidget(self.default_button)
+
         main_layout.addLayout(upper_button_layout)
 
 
 
         coefficient_layout = QHBoxLayout()
+        coefficient_layout.setAlignment(Qt.AlignCenter)
+
+        left_spacer = QVBoxLayout()
+        left_spacer.addStretch()
 
         coefficient_table_layout = QVBoxLayout()
-
+        
         self.table_label = QLabel("Sērijas Koeficientu Tabula")
         self.table_label.setObjectName("secondaryLabel")
         self.table_label.setAlignment(Qt.AlignCenter)
         coefficient_table_layout.addWidget(self.table_label, alignment=Qt.AlignTop)
 
         self.coefficient_table = QTableWidget()
-        self.create_table(self.coefficient_table, ["Koeficients", "Vērtība", "Mainīt"])
+        self.create_table(self.coefficient_table, ["Koeficients", "Vērtība", "Mainīt Vērtību"])
         coefficient_table_layout.addWidget(self.coefficient_table)
 
-        coefficient_layout.addLayout(coefficient_table_layout)
-        coefficient_layout.addStretch()
+        right_spacer = QVBoxLayout()
+        right_spacer.addStretch()
 
-
-        
-        self.default_button = QPushButton("Atpakaļ uz Sērijas Pārvaldīšanu")
-        self.default_button.clicked.connect(self.go_to_default)
-        self.default_button.setObjectName("defaultButton")
-        coefficient_layout.addWidget(self.default_button)
-
+        coefficient_layout.addLayout(left_spacer, 1)
+        coefficient_layout.addLayout(coefficient_table_layout, 3)
+        coefficient_layout.addLayout(right_spacer, 1)
 
         main_layout.addLayout(coefficient_layout)
         self.setLayout(main_layout)
@@ -99,18 +104,18 @@ class SettingsPage(QWidget):
         
         for row, coefficient in enumerate(coefficients.values()):
             coefficient_item = QTableWidgetItem(coefficient["description"])
+            coefficient_item.setTextAlignment(Qt.AlignCenter)
             value_item = QTableWidgetItem(str(coefficient["value"]))
+            value_item.setTextAlignment(Qt.AlignCenter)
+
 
             set_button = QPushButton("Mainīt")
+            set_button.setObjectName("changeButton")
             set_button.clicked.connect(lambda _, co=coefficient["coefficient_id"]: self.set_coefficient_value(co, series_id))
-            button_layout = QHBoxLayout()
-            button_layout.addWidget(set_button)
-            button_widget = QWidget()
-            button_widget.setLayout(button_layout)
 
             self.coefficient_table.setItem(row, 0, coefficient_item)
             self.coefficient_table.setItem(row, 1, value_item)
-            self.coefficient_table.setCellWidget(row, 2, button_widget)
+            self.coefficient_table.setCellWidget(row, 2, set_button)
 
 
 

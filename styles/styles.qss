@@ -1,9 +1,20 @@
-/* LABELS: */
 QLabel {
     font-family: 'Roboto';
     font-size: 24px;
     color: #000000;
 }
+QPushButton {
+    font-family: 'Roboto';
+    font-weight: bold;
+    font-size: 18px;
+    height: 35px;
+    border: 1px solid #a1a1a1;
+    border-radius: 1px;
+}
+
+
+
+/* LABELS: */
 QLabel#mainLabel {
     font-weight: bold;
     font-size: 24px;
@@ -20,15 +31,9 @@ QLabel#seriesLabel {
     color: #000000;
 }
 
+
+
 /* NAVIGATION BUTTONS: */
-QPushButton {
-    font-family: 'Roboto';
-    font-weight: bold;
-    font-size: 18px;
-    height: 35px;
-    border: 1px solid #a1a1a1;
-    border-radius: 1px;
-}
 QPushButton#navButton {
     color: #ffffff;
     background-color: #4681f4;
@@ -53,8 +58,11 @@ QPushButton#newSeriesButton:hover {
     border: 3px solid #0d771f;
 }
 
+
+
 /* OTHER BUTTONS: */
 QPushButton#addButton {
+    width: 250px;
     color: #ffffff;
     background-color: #33b249;
     border: 3px solid #1a872c;
@@ -126,10 +134,46 @@ QPushButton#smallButton {
     border: 1px solid #efefef;
     font-size: 16px;
 }
-QPushButton#workerStatus {
+QPushButton#smallButton:hover {
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
+}
+QPushButton#workerButton {
     font-weight: normal;
     background-color: #fbfbfb;
     border: 1px solid #efefef;
+}
+QPushButton#workerButton:hover {
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
+}
+QPushButton#changeButton {
+    font-weight: normal;
+    font-style: italic;
+    background-color: #fbfbfb;
+    border: 1px solid #efefef;
+}
+QPushButton#changeButton:hover {
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
+}
+
+/* TABLES: */
+QTableWidget {
+    font-family: 'Roboto';
+    font-size: 18px;
+    color: #000000;
+    border: 1px solid #a1a1a1;
+    border-radius: 1px;
+}
+QHeaderView::section {
+    font-family: 'Roboto';
+    font-weight: bold;
+    font-size: 17px;
+    color: #000000;
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
+    border-radius: 1px;
 }
 
 

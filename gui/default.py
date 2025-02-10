@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 
 from dialogs.add_worker import AddWorkerDialog
 from dialogs.confirmation import ConfirmationDialog
@@ -112,28 +113,31 @@ class DefaultPage(QWidget):
 
 
         lower_layout_buttons = QVBoxLayout()
+        lower_layout_buttons.setAlignment(Qt.AlignTop)  # Align all widgets to the top
 
         self.button_label = QLabel("Sērijas Darbības")
         self.button_label.setObjectName("secondaryLabel")
         self.button_label.setAlignment(Qt.AlignCenter)
-        lower_layout_buttons.addWidget(self.button_label, alignment=Qt.AlignTop)
+        lower_layout_buttons.addWidget(self.button_label)
 
         self.add_worker_button = QPushButton("Pievienot Darbinieku")
         self.add_worker_button.clicked.connect(self.add_worker)
         self.add_worker_button.setObjectName("addButton")
-        lower_layout_buttons.addWidget(self.add_worker_button, alignment=Qt.AlignTop)
-
-        self.remove_worker_button = QPushButton("Dzēst Darbinieku")
-        self.remove_worker_button.clicked.connect(self.delete_worker)
-        self.remove_worker_button.setObjectName("removeButton")
-        lower_layout_buttons.addWidget(self.remove_worker_button, alignment=Qt.AlignTop)
+        lower_layout_buttons.addWidget(self.add_worker_button)
 
         self.modify_worker_efficiency_button = QPushButton("Mainīt Efektivitāti")
         self.modify_worker_efficiency_button.clicked.connect(self.modify_worker_efficiency)
         self.modify_worker_efficiency_button.setObjectName("modifyButton")
-        lower_layout_buttons.addWidget(self.modify_worker_efficiency_button, alignment=Qt.AlignTop)
+        lower_layout_buttons.addWidget(self.modify_worker_efficiency_button)
 
-        self.results_button = QPushButton("Sērijas Diagramma")
+        self.remove_worker_button = QPushButton("Dzēst Darbinieku")
+        self.remove_worker_button.clicked.connect(self.delete_worker)
+        self.remove_worker_button.setObjectName("removeButton")
+        lower_layout_buttons.addWidget(self.remove_worker_button)
+        
+        lower_layout_buttons.addStretch()
+
+        self.results_button = QPushButton("Sērijas Dati")
         self.results_button.clicked.connect(self.go_to_print)
         self.results_button.setObjectName("printButton")
         lower_layout_buttons.addWidget(self.results_button)
@@ -274,7 +278,7 @@ class DefaultPage(QWidget):
             name_item = QTableWidgetItem(f"{worker['name']} {worker['surname']}")
             efficiency_item = QTableWidgetItem(str(worker['efficiency']))
             button_item = QPushButton("Strādā" if worker['working'] else "Nestrādā")
-            button_item.setObjectName("workerStatus")
+            button_item.setObjectName("workerButton")
             button_item.clicked.connect(lambda _, w=worker: self.toggle_worker_status(w['worker_id']))
 
             self.workers_table.setItem(row, 0, name_item)
@@ -363,6 +367,9 @@ class DefaultPage(QWidget):
         
         self.results_table.setRowCount(6)
 
+        bold_font = QFont()
+        bold_font.setBold(True)
+
         position_sum_item = QTableWidgetItem("Kopējais pozīciju gabalu skaits:")
         position_sum_count = QTableWidgetItem(str(position_sum))
         price_sum_item = QTableWidgetItem("Kopējā vērtība sērijai:")
@@ -373,8 +380,10 @@ class DefaultPage(QWidget):
         efficiency_time_count = QTableWidgetItem(self.to_hours_and_minutes(efficiency_time))
         series_time_item_hours = QTableWidgetItem("Reālais sērijas izpildes laiks (ņemot vērā visus koeficientus):")
         series_time_count_hours = QTableWidgetItem(self.to_hours_and_minutes(series_time))
+        series_time_count_hours.setFont(bold_font)
         series_time_item_days = QTableWidgetItem("Reālais sērijas izpildes laiks (dienās):")
         series_time_count_days = QTableWidgetItem(f"{round(series_time / 8, 1)}d")
+        series_time_count_days.setFont(bold_font)
 
         self.results_table.setItem(0, 0, position_sum_item)
         self.results_table.setItem(0, 1, position_sum_count)
@@ -446,7 +455,6 @@ class DefaultPage(QWidget):
     def create_table(self, table, headers):
         table.setColumnCount(len(headers))
         table.setHorizontalHeaderLabels(headers)
-        #table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -454,8 +462,6 @@ class DefaultPage(QWidget):
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         table.setSelectionMode(QAbstractItemView.NoSelection)
-
-
 
     # Toggles worker's status.
     def toggle_worker_status(self, worker_id):
