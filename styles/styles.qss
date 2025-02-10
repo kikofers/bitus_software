@@ -179,8 +179,45 @@ QHeaderView::section {
 
 
 /* INPUT FIELD SETTINGS: */
-QLineEdit#customInputField {
+QLabel#description {
+    font-family: 'Roboto';
     font-size: 18px;
-    font-weight: bold;
-    height: 35px;
+}
+QLineEdit#customInputField {
+    font-family: 'Roboto';
+    font-style: italic;
+    font-size: 18px;
+    height: 40px;
+}
+QPushButton#OK {
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #33b249;
+    border: 3px solid #1a872c;
+}
+QPushButton#OK:hover {
+    background-color: #199d2f;
+    border: 3px solid #0d771f;
+}
+QPushButton#cancel {
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #f44336;
+    border: 3px solid #c62828;
+}
+QPushButton#cancel:hover {
+    background-color: #dc3327;
+    border: 3px solid #ab1f16;
+}
+QMessageBox QPushButton {
+    font-family: 'Roboto';
+    font-size: 16px;
+    width: 100%;
+    color: #000000;
+    background-color: #fbfbfb;
+    border: 3px solid #e4e4e4;
+}
+QMessageBox QPushButton:hover {
+    background-color: #e4e4e4;
+    border: 3px solid #d9d9d9;
 }

@@ -5,7 +5,7 @@ class EditWorkerEfficiencyDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Rediģēt darbinieka efektivitāti")
-        self.setGeometry(0, 0, 400, 300)
+        self.setFixedSize(400, 600)
 
         layout = QVBoxLayout()
 
@@ -38,7 +38,7 @@ class EditWorkerEfficiencyDialog(QDialog):
     def populate_worker_list(self):
         workers = database.get_series_workers(self.parent().main_window.series_index)
         for worker in workers.values():
-            self.worker_list.addItem(f"{worker['name']} {worker['surname']} (ID: {worker['worker_id']})")
+            self.worker_list.addItem(f"{worker['name']} {worker['surname']}")
 
     def save_efficiency(self):
         selected_items = self.worker_list.selectedItems()
@@ -52,7 +52,7 @@ class EditWorkerEfficiencyDialog(QDialog):
             return
 
         try:
-            new_efficiency = float(new_efficiency)
+            new_efficiency = float(new_efficiency.replace(',', '.'))
         except ValueError:
             QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli efektivitātei.")
             return

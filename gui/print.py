@@ -64,6 +64,7 @@ class Diagram(FigureCanvas):
 
         # Adjust layout to fit all elements
         self.fig.tight_layout(rect=[0, 0, 1, 1])
+        self.fig.subplots_adjust(bottom=0.2, top=0.8)
         self.draw()
 
     """ Saves the chart as a picture in a folder.
