@@ -64,6 +64,7 @@ class DefaultPage(QWidget):
 
         self.position_table = QTableView()
         self.create_table(self.position_table, ["Pozīcija", "Gabali", "Mainīt Skaitu"])
+        self.position_table.setItemDelegateForColumn(2, PositionButtonDelegate(self))
 
         self.price_label = QLabel("Cenas Tabula")
         self.price_label.setObjectName("secondaryLabel")
@@ -71,6 +72,7 @@ class DefaultPage(QWidget):
 
         self.price_table = QTableView()
         self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabali", "Mainīt Skaitu", "KOPĀ"])
+        self.price_table.setItemDelegateForColumn(3, PriceButtonDelegate(self))
 
         left_layout.addWidget(self.position_label)
         left_layout.addWidget(self.position_table)
@@ -86,7 +88,8 @@ class DefaultPage(QWidget):
 
         self.workers_table = QTableView()
         self.create_table(self.workers_table, ["Darbinieks", "Efektivitāte", "Strādās Šajā Sērijā"])
-
+        self.workers_table.setItemDelegateForColumn(2, WorkerButtonDelegate(self))
+        
         self.results_label = QLabel("Sērijas Apkopojums")
         self.results_label.setObjectName("secondaryLabel")
         self.results_label.setAlignment(Qt.AlignCenter)

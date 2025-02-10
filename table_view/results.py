@@ -1,3 +1,5 @@
+from PyQt5.QtCore import QAbstractTableModel, Qt
+
 class ResultsTableModel(QAbstractTableModel):
     def __init__(self, results=None, parent=None):
         super().__init__(parent)
