@@ -59,13 +59,21 @@ class DefaultPage(QWidget):
 
         self.position_table = QTableWidget()
         self.create_table(self.position_table, ["Pozīcija", "Gabali", "Mainīt Skaitu"])
-
+        self.position_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.position_table.setColumnWidth(1, 80)
+        self.position_table.setColumnWidth(2, 210)
+    
         self.price_label = QLabel("Cenas Tabula")
         self.price_label.setObjectName("secondaryLabel")
         self.price_label.setAlignment(Qt.AlignCenter)
 
         self.price_table = QTableWidget()
         self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabali", "Mainīt Skaitu", "KOPĀ"])
+        self.price_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.price_table.setColumnWidth(1, 80)
+        self.price_table.setColumnWidth(2, 80)
+        self.price_table.setColumnWidth(3, 210)
+        self.price_table.setColumnWidth(4, 100)
 
         left_layout.addWidget(self.position_label)
         left_layout.addWidget(self.position_table)
@@ -81,6 +89,9 @@ class DefaultPage(QWidget):
 
         self.workers_table = QTableWidget()
         self.create_table(self.workers_table, ["Darbinieks", "Efektivitāte", "Strādās Šajā Sērijā"])
+        self.workers_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.workers_table.setColumnWidth(1, 100)
+        self.workers_table.setColumnWidth(2, 210)
 
         self.results_label = QLabel("Sērijas Apkopojums")
         self.results_label.setObjectName("secondaryLabel")
@@ -89,6 +100,8 @@ class DefaultPage(QWidget):
         self.results_table = QTableWidget()
         self.create_table(self.results_table, ["Kas", "Cik"])
         self.results_table.horizontalHeader().setVisible(False)
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.results_table.setColumnWidth(1, 210)
 
         right_layout.addWidget(self.workers_label)
         right_layout.addWidget(self.workers_table)
@@ -217,7 +230,7 @@ class DefaultPage(QWidget):
         self.position_table.setRowCount(9)
 
         for row, (position, count) in enumerate(positions.items()):
-            position_item = QTableWidgetItem(str(position))
+            position_item = QTableWidgetItem(f"Pozīcija nr. {position}")
             count_item = QTableWidgetItem(str(count))
 
             button_layout = QHBoxLayout()
@@ -261,6 +274,7 @@ class DefaultPage(QWidget):
             name_item = QTableWidgetItem(f"{worker['name']} {worker['surname']}")
             efficiency_item = QTableWidgetItem(str(worker['efficiency']))
             button_item = QPushButton("Strādā" if worker['working'] else "Nestrādā")
+            button_item.setObjectName("workerStatus")
             button_item.clicked.connect(lambda _, w=worker: self.toggle_worker_status(w['worker_id']))
 
             self.workers_table.setItem(row, 0, name_item)
@@ -277,7 +291,7 @@ class DefaultPage(QWidget):
 
         for row, price in enumerate(prices.values()):
             description_item = QTableWidgetItem(price["description"])
-            price_item = QTableWidgetItem(str(price["price"]))
+            price_item = QTableWidgetItem(f"{price['price']}€")
             count_item = QTableWidgetItem(str(price["count"]))
             total_item = QTableWidgetItem(f"{round(price['price'] * price['count'], 2):.2f}€")
 
@@ -432,13 +446,16 @@ class DefaultPage(QWidget):
     def create_table(self, table, headers):
         table.setColumnCount(len(headers))
         table.setHorizontalHeaderLabels(headers)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        #table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        table.resizeColumnsToContents()
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionMode(QAbstractItemView.NoSelection)
+
+
 
     # Toggles worker's status.
     def toggle_worker_status(self, worker_id):

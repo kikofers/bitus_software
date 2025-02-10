@@ -126,6 +126,13 @@ QPushButton#smallButton {
     border: 1px solid #efefef;
     font-size: 16px;
 }
+QPushButton#workerStatus {
+    font-weight: normal;
+    background-color: #fbfbfb;
+    border: 1px solid #efefef;
+}
+
+
 
 /* INPUT FIELD SETTINGS: */
 QLineEdit#customInputField {
