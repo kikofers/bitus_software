@@ -1,10 +1,15 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QHBoxLayout, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog, QTableView
 from PyQt5.QtCore import Qt
 
 from dialogs.add_worker import AddWorkerDialog
 from dialogs.confirmation import ConfirmationDialog
 from dialogs.delete_worker import DeleteWorkerDialog
 from dialogs.worker_efficiency import EditWorkerEfficiencyDialog
+
+from table_view.workers import WorkerTableModel, WorkerButtonDelegate
+from table_view.positions import PositionTableModel, PositionButtonDelegate
+from table_view.prices import PriceTableModel, PriceButtonDelegate
+from table_view.results import ResultsTableModel
 
 from manage_database.database import database
 
@@ -57,14 +62,14 @@ class DefaultPage(QWidget):
         self.position_label.setObjectName("secondaryLabel")
         self.position_label.setAlignment(Qt.AlignCenter)
 
-        self.position_table = QTableWidget()
+        self.position_table = QTableView()
         self.create_table(self.position_table, ["Pozīcija", "Gabali", "Mainīt Skaitu"])
 
         self.price_label = QLabel("Cenas Tabula")
         self.price_label.setObjectName("secondaryLabel")
         self.price_label.setAlignment(Qt.AlignCenter)
 
-        self.price_table = QTableWidget()
+        self.price_table = QTableView()
         self.create_table(self.price_table, ["Iecirknis", "Cena", "Gabali", "Mainīt Skaitu", "KOPĀ"])
 
         left_layout.addWidget(self.position_label)
@@ -79,14 +84,14 @@ class DefaultPage(QWidget):
         self.workers_label.setObjectName("secondaryLabel")
         self.workers_label.setAlignment(Qt.AlignCenter)
 
-        self.workers_table = QTableWidget()
+        self.workers_table = QTableView()
         self.create_table(self.workers_table, ["Darbinieks", "Efektivitāte", "Strādās Šajā Sērijā"])
 
         self.results_label = QLabel("Sērijas Apkopojums")
         self.results_label.setObjectName("secondaryLabel")
         self.results_label.setAlignment(Qt.AlignCenter)
 
-        self.results_table = QTableWidget()
+        self.results_table = QTableView()
         self.create_table(self.results_table, ["Kas", "Cik"])
         self.results_table.horizontalHeader().setVisible(False)
 
@@ -167,18 +172,26 @@ class DefaultPage(QWidget):
         dialog.exec_()
 
     # Set's the value of a position to the inputed number.
-    def set_position_value(self, position, series_id):
+    def set_position_value(self, row_index):
+        position, _ = self.position_model.positions[row_index]
+        series_id = self.main_window.series_index
+
         new_value, ok = QInputDialog.getInt(self, "Set Position Value", f"Set new value for {position}:", min=0)
         if ok:
             database.set_position(position, series_id, new_value)
-            self.update_page()
+
+        self.update_position_table()
 
     # Set's the value of a price to the inputed number.
-    def set_price_count(self, price_id):
-        new_value, ok = QInputDialog.getInt(self, "Set Price Value", f"Set new value for {price_id}:", min=0)
+    def set_price_count(self, row_index):
+        price_id = self.price_model.prices[row_index]["price_id"]
+
+        new_value, ok = QInputDialog.getInt(self, "Set Price Count", "Enter new count:", min=0)
         if ok:
-            database.set_price_count(new_value, price_id)
-            self.update_page()
+            database.set_price_count(price_id, new_value)
+
+        self.update_price_table()
+        self.update_page()
 
     # Confirm the position reset.
     def confirm_reset_positions(self):
@@ -209,63 +222,54 @@ class DefaultPage(QWidget):
     # Updates the position table.
     def populate_position_table(self):
         series_id = self.main_window.series_index
-        
         positions = database.get_positions(series_id)
         if positions is None:
             return
 
-        self.position_table.setRowCount(9)
+        self.position_model = PositionTableModel(list(positions.items()))  # Model needed
+        self.position_table.setModel(self.position_model)
 
-        for row, (position, count) in enumerate(positions.items()):
-            position_item = QTableWidgetItem(str(position))
-            count_item = QTableWidgetItem(str(count))
+        # Assign button delegate
+        self.button_delegate = PositionButtonDelegate(
+            self.position_table, self.modify_position_value, self.set_position_value
+        )
+        self.position_table.setItemDelegateForColumn(2, self.button_delegate)
 
-            button_layout = QHBoxLayout()
-            increase_button = QPushButton("+1")
-            increase_button.setFixedSize(60, 35)
-            decrease_button = QPushButton("-1")
-            decrease_button.setFixedSize(60, 35)
-            set_button = QPushButton("Ievadīt")
-            set_button.setFixedSize(60, 35)
+        self.position_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-            increase_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, 1))
-            decrease_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, -1))
-            set_button.clicked.connect(lambda _, pos=position: self.set_position_value(pos, series_id))
+    def update_position_table(self):
+        series_id = self.main_window.series_index
+        positions = database.get_positions(series_id)
 
-            increase_button.setObjectName("smallButton")
-            decrease_button.setObjectName("smallButton")
-            set_button.setObjectName("smallButton")
+        if positions is None:
+            return
 
-            button_layout.addWidget(increase_button)
-            button_layout.addWidget(decrease_button)
-            button_layout.addWidget(set_button)
-            button_layout.setAlignment(Qt.AlignCenter)
-            button_layout.setContentsMargins(0, 0, 0, 0)
+        self.position_model.positions = list(positions.items())  # Update model data
+        self.position_model.layoutChanged.emit()  # Notify the view about the update
 
-            button_widget = QWidget()
-            button_widget.setLayout(button_layout)
-
-            self.position_table.setItem(row, 0, position_item)
-            self.position_table.setItem(row, 1, count_item)
-            self.position_table.setCellWidget(row, 2, button_widget)
-
-    # Updates the workers table.
     def populate_worker_table(self):
         workers = database.get_series_workers(self.main_window.series_index)
         if workers is None:
             return
 
-        self.workers_table.setRowCount(len(workers))
+        self.worker_model = WorkerTableModel(list(workers.values()))
+        self.workers_table.setModel(self.worker_model)
 
-        for row, worker in enumerate(workers.values()):
-            name_item = QTableWidgetItem(f"{worker['name']} {worker['surname']}")
-            efficiency_item = QTableWidgetItem(str(worker['efficiency']))
-            button_item = QPushButton("Strādā" if worker['working'] else "Nestrādā")
-            button_item.clicked.connect(lambda _, w=worker: self.toggle_worker_status(w['worker_id']))
+        # Assign the delegate to the last column (index 2)
+        self.button_delegate = WorkerButtonDelegate(self.workers_table, self.toggle_worker_status)
+        self.workers_table.setItemDelegateForColumn(2, self.button_delegate)
 
-            self.workers_table.setItem(row, 0, name_item)
-            self.workers_table.setItem(row, 1, efficiency_item)
-            self.workers_table.setCellWidget(row, 2, button_item)
+        # Resize columns
+        self.workers_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+    def update_worker_table(self):
+        workers = database.get_series_workers(self.main_window.series_index)
+
+        if workers is None:
+            return
+
+        self.worker_model.workers = list(workers.values())  # Update model data
+        self.worker_model.layoutChanged.emit()  # Notify the view to refresh
 
     # Update price table.
     def populate_price_table(self):
@@ -273,44 +277,25 @@ class DefaultPage(QWidget):
         if prices is None:
             return
 
-        self.price_table.setRowCount(len(prices))
+        self.price_model = PriceTableModel(list(prices.values()))
+        self.price_table.setModel(self.price_model)
 
-        for row, price in enumerate(prices.values()):
-            description_item = QTableWidgetItem(price["description"])
-            price_item = QTableWidgetItem(str(price["price"]))
-            count_item = QTableWidgetItem(str(price["count"]))
-            total_item = QTableWidgetItem(f"{round(price['price'] * price['count'], 2):.2f}€")
+        # Assign delegate for buttons in column 3
+        self.button_delegate = PriceButtonDelegate(
+            self.price_table, self.modify_price_value, self.set_price_count
+        )
+        self.price_table.setItemDelegateForColumn(3, self.button_delegate)
 
-            button_layout = QHBoxLayout()
-            increase_button = QPushButton("+1")
-            increase_button.setFixedSize(60, 35)
-            decrease_button = QPushButton("-1")
-            decrease_button.setFixedSize(60, 35)
-            set_button = QPushButton("Ievadīt")
-            set_button.setFixedSize(60, 35)
-            
-            increase_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, 1))
-            decrease_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, -1))
-            set_button.clicked.connect(lambda _, price_id=price["price_id"]: self.set_price_count(price_id))
+        self.price_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-            increase_button.setObjectName("smallButton")
-            decrease_button.setObjectName("smallButton")
-            set_button.setObjectName("smallButton")
+    def update_price_table(self):
+        prices = database.get_prices(self.main_window.series_index)
 
-            button_layout.addWidget(increase_button)
-            button_layout.addWidget(decrease_button)
-            button_layout.addWidget(set_button)
-            button_layout.setAlignment(Qt.AlignCenter)
-            button_layout.setContentsMargins(0, 0, 0, 0)
+        if prices is None:
+            return
 
-            button_widget = QWidget()
-            button_widget.setLayout(button_layout)
-
-            self.price_table.setItem(row, 0, description_item)
-            self.price_table.setItem(row, 1, price_item)
-            self.price_table.setItem(row, 2, count_item)
-            self.price_table.setCellWidget(row, 3, button_widget)
-            self.price_table.setItem(row, 4, total_item)
+        self.price_model.prices = list(prices.values())  # Update model data
+        self.price_model.layoutChanged.emit()  # Refresh view
 
     # Updates the results table.
     def populate_results_table(self):
@@ -326,54 +311,37 @@ class DefaultPage(QWidget):
         
         position_time = 0.0
         for position in positions:
-            coefficient_id = position  # Assuming coefficient_id starts from 0 and matches position - 1
+            coefficient_id = position
             if coefficient_id in coefficients:
                 position_time += positions[position] * coefficients[coefficient_id]["value"]
 
-        total_efficiency = 0.0
-        for worker_id, worker in workers.items():
-            if worker["working"]:
-                total_efficiency += worker["efficiency"]
+        total_efficiency = sum(worker["efficiency"] for worker in workers.values() if worker["working"])
 
         if total_efficiency == 0:
-            self.results_table.clearContents()
-            self.results_table.setRowCount(1)
-            efficiency_time_item = QTableWidgetItem("UZMANĪBU!")
-            efficiency_time_count = QTableWidgetItem("Neviens darbinieks nestrādā.")
-            self.results_table.setItem(0, 0, efficiency_time_item)
-            self.results_table.setItem(0, 1, efficiency_time_count)
-            return
+            results = [
+                ("UZMANĪBU!", "Neviens darbinieks nestrādā.")
+            ]
+        else:
+            efficiency_time = position_time / total_efficiency
+            series_time = efficiency_time + efficiency_time * coefficients[10]["value"] + efficiency_time * coefficients[11]["value"]
 
-        efficiency_time = position_time / total_efficiency
-        series_time = efficiency_time + efficiency_time * coefficients[10]["value"] + efficiency_time * coefficients[11]["value"]
-        
-        self.results_table.setRowCount(6)
+            results = [
+                ("Kopējais pozīciju gabalu skaits:", str(position_sum)),
+                ("Kopējā vērtība sērijai:", f"{price_sum:.2f}€"),
+                ("Kopējais darba laiks (neņemot vērā efektivitāti):", self.to_hours_and_minutes(position_time)),
+                ("Sērijas izpildes laiks (ņemot vērā efektivitāti):", self.to_hours_and_minutes(efficiency_time)),
+                ("Reālais sērijas izpildes laiks (ņemot vērā visus koeficientus):", self.to_hours_and_minutes(series_time)),
+                ("Reālais sērijas izpildes laiks (dienās):", f"{round(series_time / 8, 1)}d"),
+            ]
 
-        position_sum_item = QTableWidgetItem("Kopējais pozīciju gabalu skaits:")
-        position_sum_count = QTableWidgetItem(str(position_sum))
-        price_sum_item = QTableWidgetItem("Kopējā vērtība sērijai:")
-        price_sum_count = QTableWidgetItem(f"{price_sum:.2f}€")
-        position_time_item = QTableWidgetItem("Kopējais darba laiks (neņemot vērā efektivitāti):")
-        position_time_count = QTableWidgetItem(self.to_hours_and_minutes(position_time))
-        efficiency_time_item = QTableWidgetItem("Sērijas izpildes laiks (ņemot vērā efektivitāti):")
-        efficiency_time_count = QTableWidgetItem(self.to_hours_and_minutes(efficiency_time))
-        series_time_item_hours = QTableWidgetItem("Reālais sērijas izpildes laiks (ņemot vērā visus koeficientus):")
-        series_time_count_hours = QTableWidgetItem(self.to_hours_and_minutes(series_time))
-        series_time_item_days = QTableWidgetItem("Reālais sērijas izpildes laiks (dienās):")
-        series_time_count_days = QTableWidgetItem(f"{round(series_time / 8, 1)}d")
+        # If model already exists, update data
+        if hasattr(self, 'results_model'):
+            self.results_model.update_results(results)
+        else:
+            self.results_model = ResultsTableModel(results)
+            self.results_table.setModel(self.results_model)
 
-        self.results_table.setItem(0, 0, position_sum_item)
-        self.results_table.setItem(0, 1, position_sum_count)
-        self.results_table.setItem(1, 0, price_sum_item)
-        self.results_table.setItem(1, 1, price_sum_count)
-        self.results_table.setItem(2, 0, position_time_item)
-        self.results_table.setItem(2, 1, position_time_count)
-        self.results_table.setItem(3, 0, efficiency_time_item)
-        self.results_table.setItem(3, 1, efficiency_time_count)
-        self.results_table.setItem(4, 0, series_time_item_hours)
-        self.results_table.setItem(4, 1, series_time_count_hours)
-        self.results_table.setItem(5, 0, series_time_item_days)
-        self.results_table.setItem(5, 1, series_time_count_days)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     # Updates series label color.
     def series_label_color(self):
@@ -430,20 +398,20 @@ class DefaultPage(QWidget):
 
     # Helper function to create the two tables and keep the code clean.
     def create_table(self, table, headers):
-        table.setColumnCount(len(headers))
-        table.setHorizontalHeaderLabels(headers)
+        table.setModel(None)  # Reset model
+        #table.setHorizontalHeaderLabels(headers)  # No longer needed, handled in the model
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
-        table.resizeColumnsToContents()
 
-    # Toggles worker's status.
-    def toggle_worker_status(self, worker_id):
-        database.toggle_working(worker_id)
-        self.update_page()  # Refresh the table
+    def toggle_worker_status(self, row_index):
+        worker_id = self.worker_model.workers[row_index]["worker_id"]
+        database.toggle_worker_status(worker_id)  # Toggle in DB
+        self.update_worker_table()  # Refresh table
+        self.update_page()
 
     # Resetts the values for position table.
     def reset_positions(self):
@@ -456,19 +424,28 @@ class DefaultPage(QWidget):
         self.update_page()
 
     # Controls the modified position value.
-    def modify_position_value(self, position, series_id, delta):
+    def modify_position_value(self, row_index, delta):
+        position, _ = self.position_model.positions[row_index]  # Get position name
+        series_id = self.main_window.series_index
+
         if delta == 1:
             database.add_one(position, series_id)
         elif delta == -1:
             database.remove_one(position, series_id)
+
+        self.update_position_table()
         self.update_page()
 
     # Controls the modified price value.
-    def modify_price_value(self, price_id, delta):
+    def modify_price_value(self, row_index, delta):
+        price_id = self.price_model.prices[row_index]["price_id"]
+
         if delta == 1:
             database.add_one_price(price_id)
         elif delta == -1:
             database.remove_one_price(price_id)
+
+        self.update_price_table()
         self.update_page()
     
     # Returns the hours and minutes in a string format.
