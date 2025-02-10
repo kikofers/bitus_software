@@ -283,8 +283,11 @@ class DefaultPage(QWidget):
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+1")
+            increase_button.setFixedSize(60, 35)
             decrease_button = QPushButton("-1")
+            decrease_button.setFixedSize(60, 35)
             set_button = QPushButton("Ievadīt")
+            set_button.setFixedSize(60, 35)
             
             increase_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, 1))
             decrease_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, -1))
@@ -297,6 +300,8 @@ class DefaultPage(QWidget):
             button_layout.addWidget(increase_button)
             button_layout.addWidget(decrease_button)
             button_layout.addWidget(set_button)
+            button_layout.setAlignment(Qt.AlignCenter)
+            button_layout.setContentsMargins(0, 0, 0, 0)
 
             button_widget = QWidget()
             button_widget.setLayout(button_layout)
@@ -433,6 +438,7 @@ class DefaultPage(QWidget):
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        table.resizeColumnsToContents()
 
     # Toggles worker's status.
     def toggle_worker_status(self, worker_id):

@@ -26,6 +26,7 @@ QPushButton {
     font-weight: bold;
     font-size: 18px;
     height: 35px;
+    border: 1px solid #a1a1a1;
     border-radius: 1px;
 }
 QPushButton#navButton {
@@ -121,8 +122,8 @@ QPushButton#smallButton {
     margin: 0px;
     font-style: italic;
     font-weight: normal;
-    background-color: #ebebeb;
-    border: 2px solid #d5d5d5;
+    background-color: #fbfbfb;
+    border: 1px solid #efefef;
     font-size: 16px;
 }
 
