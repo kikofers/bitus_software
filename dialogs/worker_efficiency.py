@@ -5,7 +5,7 @@ class EditWorkerEfficiencyDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Rediģēt darbinieka efektivitāti")
-        self.setFixedSize(400, 600)
+        self.setFixedSize(700, 800)
 
         layout = QVBoxLayout()
 
@@ -14,22 +14,26 @@ class EditWorkerEfficiencyDialog(QDialog):
 
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.SingleSelection)
+        self.worker_list.setObjectName("edit")
         self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
 
         self.efficiency_input = QLineEdit()
         self.efficiency_input.setPlaceholderText("Jaunā efektivitāte")
+        self.efficiency_input.setObjectName("customInputField")
         layout.addWidget(self.efficiency_input)
 
         buttons_layout = QHBoxLayout()
 
         self.save_button = QPushButton("Saglabāt")
         self.save_button.clicked.connect(self.save_efficiency)
+        self.save_button.setObjectName("OK")
         buttons_layout.addWidget(self.save_button)
 
         self.cancel_button = QPushButton("Atcelt")
         self.cancel_button.clicked.connect(self.close)
+        self.cancel_button.setObjectName("cancel")
         buttons_layout.addWidget(self.cancel_button)
 
         layout.addLayout(buttons_layout)

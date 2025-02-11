@@ -5,7 +5,7 @@ class DeleteWorkerDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Dzēst darbinieku")
-        self.setFixedSize(400, 600)
+        self.setFixedSize(600, 800)
 
         layout = QVBoxLayout()
 
@@ -14,6 +14,7 @@ class DeleteWorkerDialog(QDialog):
 
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.MultiSelection)
+        self.worker_list.setObjectName("delete")
         self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
@@ -22,10 +23,12 @@ class DeleteWorkerDialog(QDialog):
 
         self.delete_button = QPushButton("Dzēst")
         self.delete_button.clicked.connect(self.delete_selected_workers)
+        self.delete_button.setObjectName("cancel")
         buttons_layout.addWidget(self.delete_button)
 
         self.cancel_button = QPushButton("Atcelt")
         self.cancel_button.clicked.connect(self.close)
+        self.cancel_button.setObjectName("greyButton")
         buttons_layout.addWidget(self.cancel_button)
 
         layout.addLayout(buttons_layout)

@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
 from manage_database.database import database
 
 class AddWorkerDialog(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, series_id):
         self.setWindowTitle("Pievienot darbinieku")
         self.setFixedSize(450, 250)
+        self.series_id = series_id
 
         layout = QVBoxLayout()
 
@@ -57,8 +57,7 @@ class AddWorkerDialog(QDialog):
             return
 
         if name and surname and efficiency:
-            database.add_series_worker(self.parent().main_window.series_index, name, surname, efficiency)
-            self.parent().update_page()
+            database.add_series_worker(self.series_id, name, surname, efficiency)
             self.close()
         else:
             print("Kļūda! Lūdzu, aizpildiet visus laukus!")

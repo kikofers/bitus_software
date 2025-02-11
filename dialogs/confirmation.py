@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 
 class ConfirmationDialog(QDialog):
-    def __init__(self, parent=None, message=""):
-        super().__init__(parent)
+    def __init__(self, message=""):
         self.setWindowTitle("Darbības apstiprinājums")
 
         layout = QVBoxLayout()

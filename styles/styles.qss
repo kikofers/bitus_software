@@ -179,6 +179,40 @@ QHeaderView::section {
 
 
 /* INPUT FIELD SETTINGS: */
+QListWidget {
+    font-family: 'Roboto';
+    font-size: 24px;
+    border: 1px solid #a1a1a1;
+    border-radius: 1px;
+}
+QListWidget::item {
+    font-family: 'Roboto';
+    font-size: 24px;
+    color: #000000;
+    padding: 8px;
+    border-bottom: 1px solid #d9d9d9;
+}
+QListWidget::item:hover {
+    background-color: #e4e4e4;
+}
+QListWidget#edit::item:selected {
+    font-weight: bold;
+    background-color: #33b249;
+    color: #ffffff;
+}
+QListWidget#edit::item:selected:hover {
+    font-weight: bold;
+    background-color: #199d2f;
+}
+QListWidget#delete::item:selected {
+    font-weight: bold;
+    background-color: #f44336;
+    color: #ffffff;
+}
+QListWidget#delete::item:selected:hover {
+    font-weight: bold;
+    background-color: #dc3327;
+}
 QLabel#description {
     font-family: 'Roboto';
     font-size: 18px;
@@ -208,6 +242,16 @@ QPushButton#cancel {
 QPushButton#cancel:hover {
     background-color: #dc3327;
     border: 3px solid #ab1f16;
+}
+QPushButton#greyButton {
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #d6d6d6;
+    border: 3px solid #bebebe;
+}
+QPushButton#greyButton:hover {
+    background-color: #b9b9b9;
+    border: 3px solid #aaaaaa;
 }
 QMessageBox QPushButton {
     font-family: 'Roboto';
