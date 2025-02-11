@@ -1,11 +1,32 @@
+import os
 import sqlite3
 import time
+import shutil
 
 class DatabaseOperations:
     def __init__(self):
-        self.conn = sqlite3.connect('manage_database/database.sqlite3')
+        # Define the writable database path in AppData
+        appdata_folder = os.path.join(os.environ['LOCALAPPDATA'], "BitusSoftware")
+        db_path = os.path.join(appdata_folder, "database.sqlite3")
+
+        # Ensure the AppData directory exists
+        os.makedirs(appdata_folder, exist_ok=True)
+
+        # If the database doesn't exist, copy it from the original location or create a new one
+        if not os.path.exists(db_path):
+            default_db = os.path.join(os.path.dirname(__file__), "database.sqlite3")
+            if os.path.exists(default_db):
+                shutil.copy(default_db, db_path)
+            else:
+                # If no default database exists, create an empty one
+                open(db_path, 'w').close()
+
+        # Connect to the database in the AppData location
+        self.conn = sqlite3.connect(db_path)
         self.cursor = self.conn.cursor()
         self.conn.execute("PRAGMA foreign_keys = ON;")  # Ensure foreign keys are enforced.
+
+        # Create tables and initialize first run
         self.create_tables()
         self.initialize_first_run()
 

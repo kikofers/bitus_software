@@ -20,7 +20,7 @@ from manage_database.database import database
 # Displays a diagramm of the positions in the series, also shows the same results
 class Diagram(FigureCanvas):
     def __init__(self):
-        self.fig, self.ax = plt.subplots(figsize=(6, 4))
+        self.fig, self.ax = plt.subplots(figsize=(6, 4))  # Remove constrained_layout=True
         super().__init__(self.fig)
 
         self.ax.spines['top'].set_visible(False)
@@ -63,8 +63,7 @@ class Diagram(FigureCanvas):
         self.ax.yaxis.set_tick_params(labelsize=14)
 
         # Adjust layout to fit all elements
-        self.fig.tight_layout(rect=[0, 0, 1, 1])
-        self.fig.subplots_adjust(bottom=0.2, top=0.8)
+        self.fig.tight_layout()  # Manually adjust layout
         self.draw()
 
     """ Saves the chart as a picture in a folder.
