@@ -14,6 +14,7 @@ class DeleteWorkerDialog(QDialog):
 
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.MultiSelection)
+        self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
 
@@ -34,7 +35,9 @@ class DeleteWorkerDialog(QDialog):
     def populate_worker_list(self):
         workers = database.get_series_workers(self.parent().main_window.series_index)
         for worker in workers.values():
-            self.worker_list.addItem(f"{worker['name']} {worker['surname']}")
+            item_text = f"{worker['name']} {worker['surname']}"
+            self.worker_list.addItem(item_text)
+            self.worker_id_map[item_text] = worker['worker_id']
 
     def delete_selected_workers(self):
         selected_items = self.worker_list.selectedItems()
@@ -43,7 +46,7 @@ class DeleteWorkerDialog(QDialog):
             return
 
         for item in selected_items:
-            worker_id = int(item.text().split("(ID: ")[1].split(")")[0])
+            worker_id = self.worker_id_map[item.text()]
             database.delete_worker(worker_id)
 
         self.parent().update_page()

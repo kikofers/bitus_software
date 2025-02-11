@@ -14,6 +14,7 @@ class EditWorkerEfficiencyDialog(QDialog):
 
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.SingleSelection)
+        self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
 
@@ -38,7 +39,9 @@ class EditWorkerEfficiencyDialog(QDialog):
     def populate_worker_list(self):
         workers = database.get_series_workers(self.parent().main_window.series_index)
         for worker in workers.values():
-            self.worker_list.addItem(f"{worker['name']} {worker['surname']}")
+            item_text = f"{worker['name']} {worker['surname']}"
+            self.worker_list.addItem(item_text)
+            self.worker_id_map[item_text] = worker['worker_id']
 
     def save_efficiency(self):
         selected_items = self.worker_list.selectedItems()
@@ -56,8 +59,8 @@ class EditWorkerEfficiencyDialog(QDialog):
         except ValueError:
             QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli efektivitātei.")
             return
-
-        worker_id = int(selected_items[0].text().split("(ID: ")[1].split(")")[0])
+        
+        worker_id = self.worker_id_map[selected_items[0].text()]
         database.edit_worker(worker_id, new_efficiency)
 
         self.parent().update_page()
