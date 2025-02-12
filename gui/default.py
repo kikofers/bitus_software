@@ -170,7 +170,7 @@ class DefaultPage(QWidget):
 #------ Dialog Functions: ------
     # Add worker dialog.
     def add_worker(self):
-        dialog = AddWorkerDialog(self.main_window.series_index)
+        dialog = AddWorkerDialog(self)
         dialog.exec_()
         self.update_page()
 
@@ -201,7 +201,7 @@ class DefaultPage(QWidget):
     # Confirm the position reset.
     def confirm_reset_positions(self):
         message = "Vai tiešām iestatīt visas pozīciju vērtības uz 0?      "
-        dialog = ConfirmationDialog(message)
+        dialog = ConfirmationDialog(self, message)
         if dialog.exec_():
             self.reset_positions()
          
