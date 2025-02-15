@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QAbstractItemView, QSizePolicy, QInputDialog
 from PyQt5.QtCore import Qt
 
+from dialogs.change_coefficient import CoefficientDialog
+
 from manage_database.database import database
 
 # Displays all 11 coefficients. Each can be adjusted by the user.
@@ -25,22 +27,22 @@ class SettingsPage(QWidget):
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
         self.previous_series_button.clicked.connect(self.previous_series)
-        self.previous_series_button.setObjectName("navButton")
+        self.previous_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.previous_series_button)
 
         self.next_series_button = QPushButton("Nākamā sērija")
         self.next_series_button.clicked.connect(self.next_series)
-        self.next_series_button.setObjectName("navButton")
+        self.next_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.next_series_button)
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
         self.latest_series_button.clicked.connect(self.latest_series)
-        self.latest_series_button.setObjectName("navButton")
+        self.latest_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
         self.default_button = QPushButton("Atpakaļ uz Sērijas Pārvaldīšanu")
         self.default_button.clicked.connect(self.go_to_default)
-        self.default_button.setObjectName("defaultButton")
+        self.default_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.default_button)
 
         main_layout.addLayout(upper_button_layout)
@@ -111,7 +113,7 @@ class SettingsPage(QWidget):
 
             set_button = QPushButton("Mainīt")
             set_button.setObjectName("changeButton")
-            set_button.clicked.connect(lambda _, co=coefficient["coefficient_id"]: self.set_coefficient_value(co, series_id))
+            set_button.clicked.connect(lambda _, cid=coefficient["coefficient_id"], desc=coefficient["description"], val=coefficient["value"]: self.change_coefficient(cid, desc, val))
 
             self.coefficient_table.setItem(row, 0, coefficient_item)
             self.coefficient_table.setItem(row, 1, value_item)
@@ -120,11 +122,10 @@ class SettingsPage(QWidget):
 
 
 #------ Dialogs: ------
-    def set_coefficient_value(self, coefficient, series_id):
-        new_value, ok = QInputDialog.getDouble(self, "Mainīt vērtību", f"Iestatīt jauno koeficienta vērtību:", decimals=2, min=0)
-        if ok:
-            database.set_coefficient(coefficient, series_id, new_value)
-            self.update_page()
+    def change_coefficient(self, coefficient_id, description, value):
+        dialog = CoefficientDialog(self, coefficient_id, description, value)
+        dialog.exec_()
+        self.update_page()
 
 
 
@@ -159,12 +160,14 @@ class SettingsPage(QWidget):
     def create_table(self, table, headers):
         table.setColumnCount(len(headers))
         table.setHorizontalHeaderLabels(headers)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionMode(QAbstractItemView.NoSelection)
 
     def go_to_default(self):
         self.main_window.default_page.update_page()

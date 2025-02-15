@@ -26,15 +26,15 @@ class EditWorkerEfficiencyDialog(QDialog):
 
         buttons_layout = QHBoxLayout()
 
-        self.save_button = QPushButton("Saglabāt")
-        self.save_button.clicked.connect(self.save_efficiency)
-        self.save_button.setObjectName("OK")
-        buttons_layout.addWidget(self.save_button)
-
         self.cancel_button = QPushButton("Atcelt")
         self.cancel_button.clicked.connect(self.close)
         self.cancel_button.setObjectName("cancel")
         buttons_layout.addWidget(self.cancel_button)
+
+        self.save_button = QPushButton("Saglabāt")
+        self.save_button.clicked.connect(self.save_efficiency)
+        self.save_button.setObjectName("ok")
+        buttons_layout.addWidget(self.save_button)
 
         layout.addLayout(buttons_layout)
 

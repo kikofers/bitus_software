@@ -29,22 +29,22 @@ class DefaultPage(QWidget):
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
         self.previous_series_button.clicked.connect(self.previous_series)
-        self.previous_series_button.setObjectName("navButton")
+        self.previous_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.previous_series_button)
 
         self.next_series_button = QPushButton("Nākamā sērija")
         self.next_series_button.clicked.connect(self.next_series)
-        self.next_series_button.setObjectName("navButton")
+        self.next_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.next_series_button)
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
         self.latest_series_button.clicked.connect(self.latest_series)
-        self.latest_series_button.setObjectName("navButton")
+        self.latest_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
         self.new_series_button = QPushButton("Jauna sērija")
         self.new_series_button.clicked.connect(self.create_new_series)
-        self.new_series_button.setObjectName("newSeriesButton")
+        self.new_series_button.setObjectName("greenButton")
         upper_button_layout.addWidget(self.new_series_button)
 
         main_layout.addLayout(upper_button_layout)
@@ -54,6 +54,7 @@ class DefaultPage(QWidget):
         lower_layout = QHBoxLayout()
 
         left_layout = QVBoxLayout()
+        left_layout.setObjectName("greyLayout")
         self.position_label = QLabel("Pozīciju Tabula")
         self.position_label.setObjectName("secondaryLabel")
         self.position_label.setAlignment(Qt.AlignCenter)
@@ -113,48 +114,50 @@ class DefaultPage(QWidget):
 
 
         lower_layout_buttons = QVBoxLayout()
+        
         lower_layout_buttons.setAlignment(Qt.AlignTop)  # Align all widgets to the top
 
         self.button_label = QLabel("Sērijas Darbības")
         self.button_label.setObjectName("secondaryLabel")
         self.button_label.setAlignment(Qt.AlignCenter)
+        self.button_label.setFixedWidth(250)
         lower_layout_buttons.addWidget(self.button_label)
 
         self.add_worker_button = QPushButton("Pievienot Darbinieku")
         self.add_worker_button.clicked.connect(self.add_worker)
-        self.add_worker_button.setObjectName("addButton")
+        self.add_worker_button.setObjectName("greenButton")
         lower_layout_buttons.addWidget(self.add_worker_button)
 
         self.modify_worker_efficiency_button = QPushButton("Mainīt Efektivitāti")
         self.modify_worker_efficiency_button.clicked.connect(self.modify_worker_efficiency)
-        self.modify_worker_efficiency_button.setObjectName("modifyButton")
+        self.modify_worker_efficiency_button.setObjectName("orangeButton")
         lower_layout_buttons.addWidget(self.modify_worker_efficiency_button)
 
         self.remove_worker_button = QPushButton("Dzēst Darbinieku")
         self.remove_worker_button.clicked.connect(self.delete_worker)
-        self.remove_worker_button.setObjectName("removeButton")
+        self.remove_worker_button.setObjectName("redButton")
         lower_layout_buttons.addWidget(self.remove_worker_button)
         
         lower_layout_buttons.addStretch()
 
         self.results_button = QPushButton("Sērijas Dati")
         self.results_button.clicked.connect(self.go_to_print)
-        self.results_button.setObjectName("printButton")
+        self.results_button.setObjectName("blueButton")
         lower_layout_buttons.addWidget(self.results_button)
 
         self.settings_button = QPushButton("Koeficientu Iestatījumi")
         self.settings_button.clicked.connect(self.go_to_settings)
-        self.settings_button.setObjectName("settingsButton")
+        self.settings_button.setObjectName("blueButton")
         lower_layout_buttons.addWidget(self.settings_button)
 
         self.reset_positions_button = QPushButton("Notīrīt Pozīcijas")
         self.reset_positions_button.clicked.connect(self.confirm_reset_positions)
-        self.reset_positions_button.setObjectName("restartButton")
+        self.reset_positions_button.setObjectName("redButton")
         lower_layout_buttons.addWidget(self.reset_positions_button)
 
         self.reset_prices_button = QPushButton("Notīrīt Cenas")
         self.reset_prices_button.clicked.connect(self.confirm_reset_prices)
-        self.reset_prices_button.setObjectName("restartButton")
+        self.reset_prices_button.setObjectName("redButton")
         lower_layout_buttons.addWidget(self.reset_prices_button)
 
         lower_layout.addLayout(lower_layout_buttons)

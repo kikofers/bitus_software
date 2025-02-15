@@ -95,22 +95,22 @@ class PrintPage(QWidget):
 
         self.previous_series_button = QPushButton("Iepriekšējā sērija")
         self.previous_series_button.clicked.connect(self.previous_series)
-        self.previous_series_button.setObjectName("navButton")
+        self.previous_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.previous_series_button)
 
         self.next_series_button = QPushButton("Nākamā sērija")
         self.next_series_button.clicked.connect(self.next_series)
-        self.next_series_button.setObjectName("navButton")
+        self.next_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.next_series_button)
 
         self.latest_series_button = QPushButton("Jaunākā sērija")
         self.latest_series_button.clicked.connect(self.latest_series)
-        self.latest_series_button.setObjectName("navButton")
+        self.latest_series_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.latest_series_button)
 
         self.default_button = QPushButton("Atpakaļ uz Sērijas Pārvaldīšanu")
         self.default_button.clicked.connect(self.go_to_default)
-        self.default_button.setObjectName("defaultButton")
+        self.default_button.setObjectName("blueButton")
         upper_button_layout.addWidget(self.default_button)
 
         main_layout.addLayout(upper_button_layout)

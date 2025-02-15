@@ -31,15 +31,15 @@ class AddWorkerDialog(QDialog):
 
         buttons_layout = QHBoxLayout()
 
-        self.add_button = QPushButton("Pievienot")
-        self.add_button.clicked.connect(self.add_worker)
-        self.add_button.setObjectName("OK")
-        buttons_layout.addWidget(self.add_button)
-
         self.cancel_button = QPushButton("Atcelt")
         self.cancel_button.clicked.connect(self.close)
         self.cancel_button.setObjectName("cancel")
         buttons_layout.addWidget(self.cancel_button)
+
+        self.add_button = QPushButton("Pievienot")
+        self.add_button.clicked.connect(self.add_worker)
+        self.add_button.setObjectName("ok")
+        buttons_layout.addWidget(self.add_button)
 
         layout.addLayout(buttons_layout)
 

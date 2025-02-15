@@ -25,96 +25,85 @@ QLabel#secondaryLabel {
 /* NAVIGATION BUTTONS: */
 QPushButton {
     font-family: 'Roboto';
-    color: #000000;
     font-weight: bold;
     font-size: 18px;
-    border-width: 2px;
-    border-style: solid;
-    border-radius: 1px;
     height: 35px;
+    border: 1px solid #a1a1a1;
+    border-radius: 1px;
 }
 QPushButton#blueButton {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#blueButton:hover {
     color: #ffffff;
     background-color: #4681f4;
-    border-color: #265dcb;
+    border: 3px solid #265dcb;
+}
+QPushButton#blueButton:hover {
+    background-color: #4681f4;
+    border: 3px solid #265dcb;
 }
 QPushButton#blueButton:disabled {
     color: #898989;
     background-color: #ffffff;
-    border-color: #e2e2e2;
+    border: 3px solid #e2e2e2;
 }
 QPushButton#greenButton {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#greenButton:hover {
     color: #ffffff;
     background-color: #33b249;
-    border-color: #1a872c;
+    border: 3px solid #1a872c;
+}
+QPushButton#greenButton:hover {
+    background-color: #33b249;
+    border: 3px solid #1a872c;
 }
 QPushButton#redButton {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#redButton:hover {
     color: #ffffff;
     background-color: #f44336;
-    border-color: #c62828;
+    border: 3px solid #c62828;
+}
+QPushButton#redButton:hover {
+    background-color: #f44336;
+    border: 3px solid #c62828;
 }
 QPushButton#orangeButton {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#orangeButton:hover {
     color: #ffffff;
     background-color: #ffbd03;
-    border-color: #e4a700;
+    border: 3px solid #e4a700;
 }
+QPushButton#orangeButton:hover {
+    background-color: #ce9700;
+    border: 3px solid #b38301;
+}
+
 QPushButton#smallButton {
-    font-size: 16px;
-    font-style: italic;
-    font-weight: normal;
-    color: #000000;
-    background-color: #fbfbfb;
-    border: 1px solid #e5e5e5;
     padding: 0px;
     margin: 0px;
+    font-style: italic;
+    font-weight: normal;
+    background-color: #fbfbfb;
+    border: 1px solid #efefef;
+    font-size: 16px;
 }
 QPushButton#smallButton:hover {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
+}
+QPushButton#workerButton {
+    font-weight: normal;
+    background-color: #fbfbfb;
+    border: 1px solid #efefef;
+}
+QPushButton#workerButton:hover {
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
 }
 QPushButton#changeButton {
-    color: #000000;
     font-weight: normal;
     font-style: italic;
     background-color: #fbfbfb;
-    border: 1px solid #e5e5e5;
+    border: 1px solid #efefef;
 }
 QPushButton#changeButton:hover {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#workerButton {
-    color: #000000;
-    font-weight: normal;
-    background-color: #fbfbfb;
-    border: 1px solid #e5e5e5;
-}
-QPushButton#workerButton:hover {
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-
-
-
-/* LAYOUTS */
-QStackedWidget {
-    background-color: #f0f0f0;
+    background-color: #e4e4e4;
+    border: 1px solid #d9d9d9;
 }
 
 
@@ -139,7 +128,7 @@ QHeaderView::section {
 
 
 
-/* DIALOGS: */
+/* INPUT FIELD SETTINGS: */
 QListWidget {
     font-family: 'Roboto';
     font-size: 24px;
@@ -184,35 +173,25 @@ QLineEdit#customInputField {
     font-size: 18px;
     height: 40px;
 }
-QPushButton#ok {
+QPushButton#OK {
     font-size: 16px;
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#ok:hover {
     color: #ffffff;
     background-color: #33b249;
-    border-color: #1a872c;
+    border: 3px solid #1a872c;
+}
+QPushButton#OK:hover {
+    background-color: #199d2f;
+    border: 3px solid #0d771f;
 }
 QPushButton#cancel {
     font-size: 16px;
-    background-color: #e5e5e5;
-    border-color: #c5c5c5;
-}
-QPushButton#cancel:hover {
-    color: #ffffff;
-    background-color: #999999;
-    border-color: #888888;
-}
-QPushButton#delete {
-    font-size: 16px;
     color: #ffffff;
     background-color: #f44336;
-    border-color: #c62828;
+    border: 3px solid #c62828;
 }
-QPushButton#delete:hover {
-    background-color: #da3c30;
-    border-color: #ab2323;
+QPushButton#cancel:hover {
+    background-color: #dc3327;
+    border: 3px solid #ab1f16;
 }
 QMessageBox QPushButton {
     font-family: 'Roboto';
