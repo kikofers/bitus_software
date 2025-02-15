@@ -5,30 +5,20 @@ from PyQt5.QtGui import QFont
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-""" PDF Export Libraries.
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle
-from reportlab.lib import colors
-
-from PIL import Image
-import os
-"""
-
 from manage_database.database import database
 
-# Displays a diagramm of the positions in the series, also shows the same results
 class Diagram(FigureCanvas):
     def __init__(self):
-        self.fig, self.ax = plt.subplots(figsize=(6, 4))  # Remove constrained_layout=True
+        self.fig, self.ax = plt.subplots(figsize=(6, 4))
         super().__init__(self.fig)
+        self.setMaximumSize(1200, 900)
 
         self.ax.spines['top'].set_visible(False)
         self.ax.spines['right'].set_visible(False)
         self.ax.spines['left'].set_color('black')
-        self.ax.spines['left'].set_linewidth(2)  # Make the left spine thicker
+        self.ax.spines['left'].set_linewidth(2)
         self.ax.spines['bottom'].set_color('black')
-        self.ax.spines['bottom'].set_linewidth(2)  # Make the bottom spine thicker
+        self.ax.spines['bottom'].set_linewidth(2)
         self.ax.tick_params(axis='x', colors='#666666')
         self.ax.tick_params(axis='y', colors='#666666')
         self.ax.yaxis.label.set_color('#666666')
@@ -36,46 +26,39 @@ class Diagram(FigureCanvas):
         self.ax.title.set_color('#333333')
 
     def show_data(self, series_id):
-        data = database.get_positions(series_id)  # Fetch data from database
-        positions = sorted(data.keys())  # Ensure bars are in correct order
-        values = [data[pos] for pos in positions]
-
         colors = ['yellow', 'red', 'green', 'green', 'red', 'red', 'yellow', 'red', 'yellow']
-        labels = [f"Poz. {pos}" for pos in positions]
+
+        data = database.get_positions(series_id)
+        positions = sorted(data.keys())
+
+        values = [data[position] for position in positions]
+        labels = [f"Poz. {position}" for position in positions]
 
         self.ax.clear()
-        self.ax.bar(labels, values, color=colors, edgecolor='black')  # Add black border around bars
+        self.ax.bar(labels, values, color=colors, edgecolor='black')
 
-        # Add values on top of bars
-        for i, v in enumerate(values):
-            self.ax.text(i, v + 0.2, str(v), ha='center', fontsize=16)
+        self.ax.set_title(f"Pozīciju Skaits {series_id}. Sērijā", fontsize=14)
 
-        self.ax.set_ylabel("Gabali", fontsize=14)
-        self.ax.set_title(f"Pozīciju Skaits {series_id}. Sērijā", fontsize=18)
+        if values:
+            bars = self.ax.bar(labels, values, color=colors, edgecolor='black')
+            self.ax.set_ylim(0, max(max(values) * 1.2, 1))
+            for bar, value in zip(bars, values):
+                self.ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.01 * max(values), f'{value}', ha='center', va='bottom', fontsize=12)
+        else:
+            self.ax.set_ylim(0, 1)
+            self.ax.text(0.5, 0.5, "No data", ha='center', va='center', fontsize=14, transform=self.ax.transAxes)
 
-        # Set the ticks and tick labels explicitly
+        self.ax.set_ylabel("Gabali", fontsize=12)
         self.ax.set_xticks(range(len(labels)))
-        self.ax.set_xticklabels(labels, fontsize=14, rotation=45, ha="right")
+        self.ax.set_xticklabels(labels, fontsize=12)
 
-        # Ensure the Y axis only has integer values
         self.ax.yaxis.get_major_locator().set_params(integer=True)
+        self.ax.yaxis.set_tick_params(labelsize=12)
 
-        self.ax.yaxis.set_tick_params(labelsize=14)
-
-        # Adjust layout to fit all elements
-        self.fig.tight_layout()  # Manually adjust layout
+        self.fig.tight_layout()
+        self.fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
         self.draw()
 
-    """ Saves the chart as a picture in a folder.
-    def save_chart(self, series_index):
-        # Ensure the directory exists
-        os.makedirs("pictures", exist_ok=True)
-        # Save the chart as a picture in the directory
-        self.fig.savefig(f"pictures\sērija_{series_index}.png", dpi=300)
-    """
-
-# Displays a diagramm of the positions in the series, also shows the same results
-# found in the default page. Allows the user to print the series data.
 class PrintPage(QWidget):
     def __init__(self, main_window):
         super().__init__()
@@ -127,66 +110,12 @@ class PrintPage(QWidget):
         self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.results_table.setColumnWidth(1, 120)
         results_layout.addWidget(self.results_table, stretch=1)
-
-        """ PDF Export Button.
-        self.export_pdf_button = QPushButton("Eksportēt PDF")
-        self.export_pdf_button.clicked.connect(lambda: self.generate_pdf(self.main_window.series_index))
-        self.export_pdf_button.setObjectName("exportPDFButton")
-        """
         
-        #main_layout.addWidget(self.export_pdf_button)
         main_layout.addLayout(results_layout)
         self.setLayout(main_layout)
 
         self.update_page()
 
-
-    """ ------ PDF Functions: ------
-    def generate_pdf(self, series_index):
-        # Save chart as image
-        self.diagram.save_chart(series_index)
-        chart_path = f"pictures\sērija_{series_index}.png"
-
-        # Ensure the directory exists
-        os.makedirs("pdf", exist_ok=True)
-        
-        # Create PDF
-        pdf = canvas.Canvas(f"pdf\sērija_{series_index}.pdf", pagesize=letter)
-        width, height = letter
-
-        # Draw title
-        pdf.setFont("Helvetica", 16)
-        pdf.drawString(200, height - 50, "Sērijas Dati")
-
-        # Draw chart
-        chart = Image.open(chart_path)
-        pdf.drawInlineImage(chart_path, 50, height - 350, width=300, height=400)
-
-        # Get table data
-        data = []
-        for row in range(self.results_table.rowCount()):
-            row_data = []
-            for col in range(self.results_table.columnCount()):
-                item = self.results_table.item(row, col)
-                row_data.append(item.text() if item else "")
-            data.append(row_data)
-
-        # Create table
-        table = Table(data, colWidths=[200, 150])
-        table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
-
-        # Draw table
-        table.wrapOn(pdf, width, height)
-        table.drawOn(pdf, 50, height - 500)
-
-        # Save PDF
-        pdf.save()
-    """
 
 
 #------ Update Functions: ------

@@ -2,7 +2,9 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWid
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
+from dialogs.change_price import PriceDialog
 from dialogs.add_worker import AddWorkerDialog
+from dialogs.change_position import PositionDialog
 from dialogs.confirmation import ConfirmationDialog
 from dialogs.delete_worker import DeleteWorkerDialog
 from dialogs.worker_efficiency import EditWorkerEfficiencyDialog
@@ -115,7 +117,7 @@ class DefaultPage(QWidget):
 
         lower_layout_buttons = QVBoxLayout()
         
-        lower_layout_buttons.setAlignment(Qt.AlignTop)  # Align all widgets to the top
+        lower_layout_buttons.setAlignment(Qt.AlignTop)
 
         self.button_label = QLabel("Sērijas Darbības")
         self.button_label.setObjectName("secondaryLabel")
@@ -181,40 +183,41 @@ class DefaultPage(QWidget):
     def delete_worker(self):
         dialog = DeleteWorkerDialog(self)
         dialog.exec_()
+        self.update_page()
 
     # Modify worker's efficiency dialog.
     def modify_worker_efficiency(self):
         dialog = EditWorkerEfficiencyDialog(self)
         dialog.exec_()
+        self.update_page()
 
     # Set's the value of a position to the inputed number.
-    def set_position_value(self, position, series_id):
-        new_value, ok = QInputDialog.getInt(self, "Set Position Value", f"Set new value for {position}:", min=0)
-        if ok:
-            database.set_position(position, series_id, new_value)
-            self.update_page()
+    def set_position_value(self, parent, position):
+        dialog = PositionDialog(parent, position)
+        dialog.exec_()
+        self.update_page()
 
     # Set's the value of a price to the inputed number.
-    def set_price_count(self, price_id):
-        new_value, ok = QInputDialog.getInt(self, "Set Price Value", f"Set new value for {price_id}:", min=0)
-        if ok:
-            database.set_price_count(new_value, price_id)
-            self.update_page()
+    def set_price_count(self, price_id, description):
+        dialog = PriceDialog(self, price_id, description)
+        dialog.exec_()
+        self.update_page()
 
     # Confirm the position reset.
     def confirm_reset_positions(self):
         message = "Vai tiešām iestatīt visas pozīciju vērtības uz 0?      "
         dialog = ConfirmationDialog(self, message)
         if dialog.exec_():
-            self.reset_positions()
+            database.reset_positions(self.main_window.series_index)
+            self.update_page()
          
-
     # Confirm price reset.
     def confirm_reset_prices(self):
         message = "Vai tiešām iestatīt visas cenu gabalu vērtības uz 0?      "
         dialog = ConfirmationDialog(self, message)
         if dialog.exec_():
-            self.reset_prices()
+            database.reset_prices(self.main_window.series_index)
+            self.update_page()
 
 
 
@@ -252,7 +255,7 @@ class DefaultPage(QWidget):
 
             increase_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, 1))
             decrease_button.clicked.connect(lambda _, pos=position: self.modify_position_value(pos, series_id, -1))
-            set_button.clicked.connect(lambda _, pos=position: self.set_position_value(pos, series_id))
+            set_button.clicked.connect(lambda _, pos=position: self.set_position_value(self, pos))
 
             increase_button.setObjectName("smallButton")
             decrease_button.setObjectName("smallButton")
@@ -301,8 +304,11 @@ class DefaultPage(QWidget):
         for row, price in enumerate(prices.values()):
             description_item = QTableWidgetItem(price["description"])
             price_item = QTableWidgetItem(f"{price['price']}€")
+            price_item.setTextAlignment(Qt.AlignCenter)
             count_item = QTableWidgetItem(str(price["count"]))
+            count_item.setTextAlignment(Qt.AlignCenter)
             total_item = QTableWidgetItem(f"{round(price['price'] * price['count'], 2):.2f}€")
+            total_item.setTextAlignment(Qt.AlignCenter)
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+1")
@@ -314,7 +320,7 @@ class DefaultPage(QWidget):
             
             increase_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, 1))
             decrease_button.clicked.connect(lambda _, price_id=price["price_id"]: self.modify_price_value(price_id, -1))
-            set_button.clicked.connect(lambda _, price_id=price["price_id"]: self.set_price_count(price_id))
+            set_button.clicked.connect(lambda _, price_id=price["price_id"], desc=price["description"]: self.set_price_count(price_id, desc))
 
             increase_button.setObjectName("smallButton")
             decrease_button.setObjectName("smallButton")
@@ -472,16 +478,6 @@ class DefaultPage(QWidget):
     def toggle_worker_status(self, worker_id):
         database.toggle_working(worker_id)
         self.update_page()  # Refresh the table
-
-    # Resetts the values for position table.
-    def reset_positions(self):
-        database.reset_positions(self.main_window.series_index)
-        self.update_page()
-
-    # Resetts the values for price table.
-    def reset_prices(self):
-        database.reset_prices(self.main_window.series_index)
-        self.update_page()
 
     # Controls the modified position value.
     def modify_position_value(self, position, series_id, delta):

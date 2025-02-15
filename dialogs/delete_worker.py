@@ -52,5 +52,4 @@ class DeleteWorkerDialog(QDialog):
             worker_id = self.worker_id_map[item.text()]
             database.delete_worker(worker_id)
 
-        self.parent().update_page()
         self.close()

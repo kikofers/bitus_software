@@ -4,6 +4,7 @@ class ConfirmationDialog(QDialog):
     def __init__(self, parent, message=""):
         super().__init__(parent)
         self.setWindowTitle("Darbības apstiprinājums")
+        self.setFixedSize(400, 100)
 
         layout = QVBoxLayout()
 
@@ -20,7 +21,7 @@ class ConfirmationDialog(QDialog):
 
         self.confirm_button = QPushButton("Jā")
         self.confirm_button.clicked.connect(self.accept)
-        self.confirm_button.setObjectName("ok")
+        self.confirm_button.setObjectName("delete")
         button_layout.addWidget(self.confirm_button)
 
         layout.addLayout(button_layout)

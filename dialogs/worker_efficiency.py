@@ -5,7 +5,7 @@ class EditWorkerEfficiencyDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Rediģēt darbinieka efektivitāti")
-        self.setFixedSize(700, 800)
+        self.setFixedSize(600, 800)
 
         layout = QVBoxLayout()
 
@@ -67,5 +67,4 @@ class EditWorkerEfficiencyDialog(QDialog):
         worker_id = self.worker_id_map[selected_items[0].text()]
         database.edit_worker(worker_id, new_efficiency)
 
-        self.parent().update_page()
         self.close()

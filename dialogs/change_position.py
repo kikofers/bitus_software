@@ -2,16 +2,15 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayo
 
 from manage_database.database import database
 
-class CoefficientDialog(QDialog):
-    def __init__(self, parent, id, description, value):
+class PositionDialog(QDialog):
+    def __init__(self, parent, position):
         super().__init__(parent)
-        self.setWindowTitle("Mainīt Vērtību")
+        self.setWindowTitle("Ievadīt Vērtību")
         self.setFixedSize(400, 150)
-        self.id = id
-        self.description = description
-        self.value = value
 
-        message = f"Mainīt {description} pašreizējo {value} vērtību uz jauno:"
+        self.position = position
+
+        message = f"Ievadiet {self.position}. pozīcijai gabalu skaitu:"
 
         layout = QVBoxLayout()
 
@@ -21,7 +20,7 @@ class CoefficientDialog(QDialog):
 
         self.input = QLineEdit()
         self.input.setObjectName("customInputField")
-        self.input.setPlaceholderText("Jaunā vērtība")
+        self.input.setPlaceholderText("Gabalu skaits")
         layout.addWidget(self.input)
 
         button_layout = QHBoxLayout()
@@ -31,15 +30,15 @@ class CoefficientDialog(QDialog):
         self.cancel_button.setObjectName("cancel")
         button_layout.addWidget(self.cancel_button)
 
-        self.confirm_button = QPushButton("Mainīt")
-        self.confirm_button.clicked.connect(lambda: self.change_coefficient(id, self.parent().main_window.series_index))
+        self.confirm_button = QPushButton("Ievadīt")
+        self.confirm_button.clicked.connect(lambda: self.change_position(self.position, self.parent().main_window.series_index))
         self.confirm_button.setObjectName("ok")
         button_layout.addWidget(self.confirm_button)
 
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def change_coefficient(self, id, series_id):
+    def change_position(self, position, series_id):
         new_value = self.input.text()
 
         try:
@@ -48,5 +47,5 @@ class CoefficientDialog(QDialog):
             QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli.")
             return
 
-        database.set_coefficient(id, series_id, new_value)
+        database.set_position(position, series_id, new_value)
         self.close()
