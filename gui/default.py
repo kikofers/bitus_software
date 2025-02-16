@@ -244,6 +244,7 @@ class DefaultPage(QWidget):
         for row, (position, count) in enumerate(positions.items()):
             position_item = QTableWidgetItem(f"Pozīcija nr. {position}")
             count_item = QTableWidgetItem(str(count))
+            count_item.setTextAlignment(Qt.AlignCenter)
 
             button_layout = QHBoxLayout()
             increase_button = QPushButton("+1")
@@ -285,6 +286,7 @@ class DefaultPage(QWidget):
         for row, worker in enumerate(workers.values()):
             name_item = QTableWidgetItem(f"{worker['name']} {worker['surname']}")
             efficiency_item = QTableWidgetItem(str(worker['efficiency']))
+            efficiency_item.setTextAlignment(Qt.AlignCenter)
             button_item = QPushButton("Strādā" if worker['working'] else "Nestrādā")
             button_item.setObjectName("workerButton")
             button_item.clicked.connect(lambda _, w=worker: self.toggle_worker_status(w['worker_id']))
