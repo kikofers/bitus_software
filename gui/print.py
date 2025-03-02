@@ -130,6 +130,10 @@ class PrintPage(QWidget):
         positions = database.get_positions(self.main_window.series_index)
         coefficients = database.get_coefficients(self.main_window.series_index)
         workers = database.get_series_workers(self.main_window.series_index)
+        parts = database.get_parts(self.main_window.series_index)
+
+        if not parts:
+            return
 
         if not workers:
             return
@@ -159,7 +163,7 @@ class PrintPage(QWidget):
         efficiency_time = position_time / total_efficiency
         series_time = efficiency_time + efficiency_time * coefficients[10]["value"] + efficiency_time * coefficients[11]["value"]
         
-        self.results_table.setRowCount(6)
+        self.results_table.setRowCount(12)
 
         bold_font = QFont()
         bold_font.setBold(True)
@@ -179,6 +183,19 @@ class PrintPage(QWidget):
         series_time_count_days = QTableWidgetItem(f"{round(series_time / 8, 1)}d")
         series_time_count_days.setFont(bold_font)
 
+        part_1 = QTableWidgetItem("Durvju rāmji:")
+        part_1_count = QTableWidgetItem(str(parts[1]["count"]))
+        part_2 = QTableWidgetItem("Savienošana:")
+        part_2_count = QTableWidgetItem(str(parts[2]["count"]))
+        part_3 = QTableWidgetItem("LV alumīnijs:")
+        part_3_count = QTableWidgetItem(str(parts[3]["count"]))
+        part_4 = QTableWidgetItem("LV koks:")
+        part_4_count = QTableWidgetItem(str(parts[4]["count"]))
+        part_5 = QTableWidgetItem("DV alumīnijs:")
+        part_5_count = QTableWidgetItem(str(parts[5]["count"]))
+        part_6 = QTableWidgetItem("DV koks:")
+        part_6_count = QTableWidgetItem(str(parts[6]["count"]))
+
         self.results_table.setItem(0, 0, position_sum_item)
         self.results_table.setItem(0, 1, position_sum_count)
         self.results_table.setItem(1, 0, price_sum_item)
@@ -191,6 +208,19 @@ class PrintPage(QWidget):
         self.results_table.setItem(4, 1, series_time_count_hours)
         self.results_table.setItem(5, 0, series_time_item_days)
         self.results_table.setItem(5, 1, series_time_count_days)
+
+        self.results_table.setItem(6, 0, part_1)
+        self.results_table.setItem(6, 1, part_1_count)
+        self.results_table.setItem(7, 0, part_2)
+        self.results_table.setItem(7, 1, part_2_count)
+        self.results_table.setItem(8, 0, part_3)
+        self.results_table.setItem(8, 1, part_3_count)
+        self.results_table.setItem(9, 0, part_4)
+        self.results_table.setItem(9, 1, part_4_count)
+        self.results_table.setItem(10, 0, part_5)
+        self.results_table.setItem(10, 1, part_5_count)
+        self.results_table.setItem(11, 0, part_6)
+        self.results_table.setItem(11, 1, part_6_count)
 
     # Updates series label color.
     def series_label_color(self):
