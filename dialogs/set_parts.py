@@ -2,16 +2,16 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton, QHBoxLayo
 
 from manage_database.database import database
 
-class PriceDialog(QDialog):
-    def __init__(self, parent, price_id, description):
+class PartDialog(QDialog):
+    def __init__(self, parent, part_id, part_description):
         super().__init__(parent)
         self.setWindowTitle("Ievadīt Vērtību")
-        self.setFixedSize(650, 150)
+        self.setFixedSize(400, 150)
 
-        self.price_id = price_id
-        self.description = description
+        self.part_id = part_id
+        self.part_description = part_description
 
-        message = f'Ievadiet "{self.description}" iecirknim gabalu skaitu:'
+        message = f'Ievadiet {self.part_description} gabalu skaitu:'
 
         layout = QVBoxLayout()
 
@@ -27,7 +27,7 @@ class PriceDialog(QDialog):
         button_layout = QHBoxLayout()
 
         self.confirm_button = QPushButton("Ievadīt")
-        self.confirm_button.clicked.connect(lambda: self.change_price(self.price_id))
+        self.confirm_button.clicked.connect(lambda: self.change_part(self.part_id, self.parent().main_window.series_index))
         self.confirm_button.setObjectName("ok")
         button_layout.addWidget(self.confirm_button)
 
@@ -39,16 +39,16 @@ class PriceDialog(QDialog):
         layout.addLayout(button_layout)
         self.setLayout(layout)
 
-    def change_price(self, price_id):
+    def change_part(self, part, series_id):
         new_value = self.input.text()
 
         try:
             new_value = float(new_value.replace(',', '.'))
             if new_value < 0:
                 raise ValueError("Vērtība nedrīkst būt mazāka par 0!")
-        except ValueError as e:
-            QMessageBox.warning(self, "Brīdinājums", str(e))
+        except ValueError:
+            QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli, kas nav mazāks par 0.")
             return
 
-        database.set_price_count(new_value, price_id)
+        database.set_part(part, series_id, new_value)
         self.close()

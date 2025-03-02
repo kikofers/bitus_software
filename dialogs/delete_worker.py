@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QMessageBox, QAbstractItemView
 from manage_database.database import database
 
 class DeleteWorkerDialog(QDialog):
@@ -15,21 +15,23 @@ class DeleteWorkerDialog(QDialog):
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.MultiSelection)
         self.worker_list.setObjectName("delete")
+        self.worker_list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.worker_list.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
 
         buttons_layout = QHBoxLayout()
 
-        self.cancel_button = QPushButton("Atcelt")
-        self.cancel_button.clicked.connect(self.close)
-        self.cancel_button.setObjectName("cancel")
-        buttons_layout.addWidget(self.cancel_button)
-
         self.delete_button = QPushButton("Dzēst")
         self.delete_button.clicked.connect(self.delete_selected_workers)
         self.delete_button.setObjectName("delete")
         buttons_layout.addWidget(self.delete_button)
+
+        self.cancel_button = QPushButton("Atcelt")
+        self.cancel_button.clicked.connect(self.close)
+        self.cancel_button.setObjectName("cancel")
+        buttons_layout.addWidget(self.cancel_button)
 
         layout.addLayout(buttons_layout)
 

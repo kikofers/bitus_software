@@ -51,6 +51,18 @@ class DatabaseOperations:
             )
         ''')
 
+        # Parts table (many-to-1 with series).
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS parts (
+                part_id INTEGER,
+                description TEXT NOT NULL,
+                count INTEGER DEFAULT 0,
+                series_id INTEGER NOT NULL,
+                PRIMARY KEY (part_id, series_id),
+                FOREIGN KEY (series_id) REFERENCES series(id) ON DELETE CASCADE
+            )
+        ''')
+
         # Positions table (many-to-1 with series).
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS coefficients (
@@ -107,6 +119,13 @@ class DatabaseOperations:
                 INSERT INTO positions (position, value, series_id)
                 VALUES (?, 0, ?)
             ''', (position, series_id))
+
+        # Copy part descriptions and their id's from the previous series (if exists)
+        previous_series_id = series_id - 1
+        self.cursor.execute('''
+            INSERT INTO parts (part_id, description, count, series_id)
+            SELECT part_id, description, count, ? FROM parts WHERE series_id = ?
+        ''', (series_id, previous_series_id))
 
         # Copy coefficients from the previous series (if exists)
         previous_series_id = series_id - 1
@@ -200,6 +219,37 @@ class DatabaseOperations:
 
 
 
+# ------ Manage parts: ------
+    # Add 1 to a parts's value.
+    def add_one_part(self, part_id, series_id):
+        query = "UPDATE parts SET count = count + 1 WHERE part_id = ? AND series_id = ?"
+        self.cursor.execute(query, (part_id, series_id))
+        self.conn.commit()
+
+    # Remove 1 from a parts's value.
+    def remove_one_part(self, part_id, series_id):
+        # Check current value
+        self.cursor.execute("SELECT count FROM parts WHERE part_id = ? AND series_id = ?", (part_id, series_id))
+        current_value = self.cursor.fetchone()[0]
+        if current_value > 0:
+            query = "UPDATE parts SET count = count - 1 WHERE part_id = ? AND series_id = ?"
+            self.cursor.execute(query, (part_id, series_id))
+            self.conn.commit()
+
+    # Set the value of a parts.
+    def set_part(self, part_id, series_id, value):
+        query = "UPDATE parts SET count = ? WHERE part_id = ? AND series_id = ?"
+        self.cursor.execute(query, (value, part_id, series_id))
+        self.conn.commit()
+
+    # Reset all parts to 0 for a given series_id.
+    def reset_parts(self, series_id):
+        query = "UPDATE parts SET count = 0 WHERE series_id = ?"
+        self.cursor.execute(query, (series_id,))
+        self.conn.commit()
+
+
+
 # ------ Manage coefficients: ------
     # Set the value of a coefficient.
     def set_coefficient(self, coefficient_id, series_id, value):
@@ -278,6 +328,11 @@ class DatabaseOperations:
         self.cursor.execute("SELECT position, value FROM positions WHERE series_id = ?", (series_id,))
         return {row[0]: row[1] for row in self.cursor.fetchall()}
 
+    # Get all parts for a given series_id.
+    def get_parts(self, series_id):
+        self.cursor.execute("SELECT part_id, description, count FROM parts WHERE series_id = ?", (series_id,))
+        return {row[0]: {"part_id": row[0], "description": row[1], "count": row[2]} for row in self.cursor.fetchall()}
+
     # Function, which will return the sum of all position values in the series.
     def get_sum_positions(self, series_id):
         self.cursor.execute("SELECT SUM(value) FROM positions WHERE series_id = ?", (series_id,))
@@ -291,6 +346,28 @@ class DatabaseOperations:
 
 
 # ------ Other functions: ------
+    # Function which will create the first 6 pre-defined parts.
+    def add_predefined_parts(self):
+        parts = [
+            (1, "Durvju rāmji"),
+            (2, "Savienošana:"),
+            (3, "LV alumīnijs"),
+            (4, "LV koks"),
+            (5, "DV alumīnijs"),
+            (6, "DV koks")
+        ]
+
+        self.cursor.execute('SELECT id FROM series')
+        series_ids = [row[0] for row in self.cursor.fetchall()]
+
+        for series_id in series_ids:
+            for part in parts:
+                self.cursor.execute('''
+                    INSERT INTO parts (part_id, description, count, series_id) VALUES (?, ?, 0, ?)
+                ''', (part[0], part[1], series_id))
+
+        self.conn.commit()
+
     # Function which will create the first 18 already pre-defined prices.
     def add_predefined_prices(self):
         prices = [
@@ -358,6 +435,12 @@ class DatabaseOperations:
             self.create_series()
             self.add_predefined_prices()
             self.add_predefined_coefficients()
+            self.add_predefined_parts()
+
+        # Check if parts exist in the table. If the table is empty, add pre-defined parts.
+        self.cursor.execute('SELECT COUNT(*) FROM parts')
+        if self.cursor.fetchone()[0] == 0:
+            self.add_predefined_parts()
 
 # Makes a single and globally accessible database class instance.
 database = DatabaseOperations()

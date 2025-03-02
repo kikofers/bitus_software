@@ -25,15 +25,15 @@ class PositionDialog(QDialog):
 
         button_layout = QHBoxLayout()
 
-        self.cancel_button = QPushButton("Atcelt")
-        self.cancel_button.clicked.connect(self.close)
-        self.cancel_button.setObjectName("cancel")
-        button_layout.addWidget(self.cancel_button)
-
         self.confirm_button = QPushButton("Ievadīt")
         self.confirm_button.clicked.connect(lambda: self.change_position(self.position, self.parent().main_window.series_index))
         self.confirm_button.setObjectName("ok")
         button_layout.addWidget(self.confirm_button)
+
+        self.cancel_button = QPushButton("Atcelt")
+        self.cancel_button.clicked.connect(self.close)
+        self.cancel_button.setObjectName("cancel")
+        button_layout.addWidget(self.cancel_button)
 
         layout.addLayout(button_layout)
         self.setLayout(layout)
@@ -43,8 +43,10 @@ class PositionDialog(QDialog):
 
         try:
             new_value = float(new_value.replace(',', '.'))
-        except ValueError:
-            QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli.")
+            if new_value < 0:
+                raise ValueError("Vērtība nedrīkst būt mazāka par 0!")
+        except ValueError as e:
+            QMessageBox.warning(self, "Brīdinājums", str(e))
             return
 
         database.set_position(position, series_id, new_value)

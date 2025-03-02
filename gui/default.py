@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QTableWid
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
+from dialogs.set_parts import PartDialog
 from dialogs.change_price import PriceDialog
 from dialogs.add_worker import AddWorkerDialog
 from dialogs.change_position import PositionDialog
@@ -57,7 +58,7 @@ class DefaultPage(QWidget):
 
         left_layout = QVBoxLayout()
         left_layout.setObjectName("greyLayout")
-        self.position_label = QLabel("Pozīciju Tabula")
+        self.position_label = QLabel("Pozīciju, Logu, Durvju un Rāmju Tabula")
         self.position_label.setObjectName("secondaryLabel")
         self.position_label.setAlignment(Qt.AlignCenter)
 
@@ -197,6 +198,12 @@ class DefaultPage(QWidget):
         dialog.exec_()
         self.update_page()
 
+    # Set's the value of a part to the inputed number.
+    def set_part_value(self, parent, part, description):
+        dialog = PartDialog(parent, part, description)
+        dialog.exec_()
+        self.update_page()
+
     # Set's the value of a price to the inputed number.
     def set_price_count(self, price_id, description):
         dialog = PriceDialog(self, price_id, description)
@@ -238,8 +245,12 @@ class DefaultPage(QWidget):
         positions = database.get_positions(series_id)
         if positions is None:
             return
-
-        self.position_table.setRowCount(9)
+        
+        parts = database.get_parts(series_id)
+        if parts is None:
+            return
+        
+        self.position_table.setRowCount(15)
 
         for row, (position, count) in enumerate(positions.items()):
             position_item = QTableWidgetItem(f"Pozīcija nr. {position}")
@@ -274,6 +285,43 @@ class DefaultPage(QWidget):
             self.position_table.setItem(row, 0, position_item)
             self.position_table.setItem(row, 1, count_item)
             self.position_table.setCellWidget(row, 2, button_widget)
+
+        start_row = len(positions)
+        for row, part in enumerate(parts.values(), start=start_row):
+            part_item = QTableWidgetItem(part["description"])
+            count_item = QTableWidgetItem(str(part["count"]))
+            count_item.setTextAlignment(Qt.AlignCenter)
+
+            button_layout = QHBoxLayout()
+            increase_button = QPushButton("+1")
+            increase_button.setFixedSize(60, 35)
+            decrease_button = QPushButton("-1")
+            decrease_button.setFixedSize(60, 35)
+            set_button = QPushButton("Ievadīt")
+            set_button.setFixedSize(60, 35)
+
+            increase_button.clicked.connect(lambda _, part=part["part_id"]: self.modify_part_value(part, series_id, 1))
+            decrease_button.clicked.connect(lambda _, part=part["part_id"]: self.modify_part_value(part, series_id, -1))
+            set_button.clicked.connect(lambda _, part=part["part_id"], desc=part["description"]: self.set_part_value(self, part, desc))
+
+            increase_button.setObjectName("smallButton")
+            decrease_button.setObjectName("smallButton")
+            set_button.setObjectName("smallButton")
+
+            button_layout.addWidget(increase_button)
+            button_layout.addWidget(decrease_button)
+            button_layout.addWidget(set_button)
+            button_layout.setAlignment(Qt.AlignCenter)
+            button_layout.setContentsMargins(0, 0, 0, 0)
+
+            button_widget = QWidget()
+            button_widget.setLayout(button_layout)
+
+            self.position_table.setItem(row, 0, part_item)
+            self.position_table.setItem(row, 1, count_item)
+            self.position_table.setCellWidget(row, 2, button_widget)
+
+
 
     # Updates the workers table.
     def populate_worker_table(self):
@@ -487,6 +535,14 @@ class DefaultPage(QWidget):
             database.add_one(position, series_id)
         elif delta == -1:
             database.remove_one(position, series_id)
+        self.update_page()
+
+    # Controls the modified part value.
+    def modify_part_value(self, part, series_id, delta):
+        if delta == 1:
+            database.add_one_part(part, series_id)
+        elif delta == -1:
+            database.remove_one_part(part, series_id)
         self.update_page()
 
     # Controls the modified price value.

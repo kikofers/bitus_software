@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QListWidget, QPushButton, QHBoxLayout, QLineEdit, QMessageBox, QAbstractItemView
 from manage_database.database import database
 
 class EditWorkerEfficiencyDialog(QDialog):
@@ -15,6 +15,8 @@ class EditWorkerEfficiencyDialog(QDialog):
         self.worker_list = QListWidget()
         self.worker_list.setSelectionMode(QListWidget.SingleSelection)
         self.worker_list.setObjectName("edit")
+        self.worker_list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.worker_list.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.worker_id_map = {}
         self.populate_worker_list()
         layout.addWidget(self.worker_list)
@@ -26,15 +28,15 @@ class EditWorkerEfficiencyDialog(QDialog):
 
         buttons_layout = QHBoxLayout()
 
-        self.cancel_button = QPushButton("Atcelt")
-        self.cancel_button.clicked.connect(self.close)
-        self.cancel_button.setObjectName("cancel")
-        buttons_layout.addWidget(self.cancel_button)
-
         self.save_button = QPushButton("Saglabāt")
         self.save_button.clicked.connect(self.save_efficiency)
         self.save_button.setObjectName("ok")
         buttons_layout.addWidget(self.save_button)
+
+        self.cancel_button = QPushButton("Atcelt")
+        self.cancel_button.clicked.connect(self.close)
+        self.cancel_button.setObjectName("cancel")
+        buttons_layout.addWidget(self.cancel_button)
 
         layout.addLayout(buttons_layout)
 
@@ -60,8 +62,10 @@ class EditWorkerEfficiencyDialog(QDialog):
 
         try:
             new_efficiency = float(new_efficiency.replace(',', '.'))
+            if new_efficiency < 0.1:
+                raise ValueError("Vērtība nedrīkst būt mazāka par 0.1!")
         except ValueError:
-            QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli efektivitātei.")
+            QMessageBox.warning(self, "Brīdinājums", "Lūdzu, ievadiet derīgu skaitli efektivitātei, kas nav mazāks par 0.")
             return
         
         worker_id = self.worker_id_map[selected_items[0].text()]
